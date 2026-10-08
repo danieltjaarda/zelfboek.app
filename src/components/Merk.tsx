@@ -21,12 +21,12 @@ export function Woordmerk({ donker = false, size = 20 }: { donker?: boolean; siz
 }
 
 /** Logo van een bank, kanaal of pakket. Bestand uit public/logos. */
-const LOGOS: Record<string, { bestand: string; naam: string }> = {
+const LOGOS: Record<string, { bestand: string; naam: string; woordmerk?: boolean }> = {
   ing: { bestand: "ing.png", naam: "ING" },
   rabobank: { bestand: "rabobank.png", naam: "Rabobank" },
-  abnamro: { bestand: "abnamro.svg", naam: "ABN AMRO" },
+  abnamro: { bestand: "abnamro.svg", naam: "ABN AMRO", woordmerk: true },
   bunq: { bestand: "bunq.svg", naam: "bunq" },
-  knab: { bestand: "knab.svg", naam: "Knab" },
+  knab: { bestand: "knab.svg", naam: "Knab", woordmerk: true },
   sns: { bestand: "sns.png", naam: "SNS" },
   asn: { bestand: "asn.png", naam: "ASN Bank" },
   regiobank: { bestand: "regiobank.png", naam: "RegioBank" },
@@ -36,7 +36,7 @@ const LOGOS: Record<string, { bestand: string; naam: string }> = {
   mollie: { bestand: "mollie.png", naam: "Mollie" },
   stripe: { bestand: "stripe.svg", naam: "Stripe" },
   shopify: { bestand: "shopify.svg", naam: "Shopify" },
-  bol: { bestand: "bol.svg", naam: "bol.com" },
+  bol: { bestand: "bol.svg", naam: "bol.com", woordmerk: true },
   woocommerce: { bestand: "woocommerce.svg", naam: "WooCommerce" },
   paypal: { bestand: "paypal.svg", naam: "PayPal" },
   moneybird: { bestand: "moneybird.png", naam: "Moneybird" },
@@ -47,8 +47,9 @@ const LOGOS: Record<string, { bestand: string; naam: string }> = {
   belastingdienst: { bestand: "belastingdienst.png", naam: "Belastingdienst" },
 };
 
-export function Logo({ id, hoogte = 22, metNaam = true, className = "" }: { id: keyof typeof LOGOS; hoogte?: number; metNaam?: boolean; className?: string }) {
+export function Logo({ id, hoogte = 22, metNaam: metNaamIn = true, className = "" }: { id: keyof typeof LOGOS; hoogte?: number; metNaam?: boolean; className?: string }) {
   const l = LOGOS[id];
+  const metNaam = l.woordmerk ? false : metNaamIn;
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`} title={l.naam}>
       {/* eslint-disable-next-line @next/next/no-img-element */}

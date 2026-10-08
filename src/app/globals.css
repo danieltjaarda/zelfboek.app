@@ -136,7 +136,7 @@ label.lbl { display: block; font-size: 14px; color: var(--tekst-2); margin-botto
 .kasboek {
   background-color: var(--papier);
   background-image:
-    repeating-linear-gradient(to bottom, transparent 0 35px, rgba(19,32,26,.085) 35px 36px);
+    repeating-linear-gradient(to bottom, transparent 0 35px, rgba(19,32,26,.07) 35px 36px);
   background-attachment: local;
 }
 .kasboek-marge { position: relative; padding-left: 28px; }
@@ -165,9 +165,22 @@ label.lbl { display: block; font-size: 14px; color: var(--tekst-2); margin-botto
 .bon-regel { opacity: 0; animation: bon-uitdraai .5s ease-out forwards; }
 @media (prefers-reduced-motion: reduce) { .bon-regel { opacity: 1; animation: none; } .bon { transform: none; } }
 
-/* Logo's op één regel, rustig. */
-.logo-stil { color: var(--tekst-2); }
-.logo-stil img { filter: grayscale(1); opacity: .8; }
+/* De nacht: diep groen-zwart met een eerste streep ochtend onderin. */
+.nacht {
+  background:
+    radial-gradient(90% 60% at 50% 115%, rgba(232,185,49,.22), transparent 60%),
+    radial-gradient(60% 50% at 15% 0%, rgba(30,107,71,.45), transparent 65%),
+    var(--inkt);
+}
+.nacht .bon { box-shadow: 0 50px 80px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04); }
+
+/* Merken: gelijke vakjes, logo gecentreerd, allemaal even hoog. */
+.merken { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media (min-width: 640px) { .merken { grid-template-columns: repeat(5, 1fr); } }
+@media (min-width: 1024px) { .merken { grid-template-columns: repeat(7, 1fr); } }
+.merk { display: flex; align-items: center; justify-content: center; height: 64px; padding: 0 12px; background: #fff; border: 1px solid var(--lijn); border-radius: 10px; }
+.merk img { max-height: 24px; max-width: 120px !important; }
+.merk span { white-space: nowrap; font-size: 14px; }
 
 /* Etmaal: tijd in de kantlijn, inhoud erachter, één doorlopende lijn. */
 .dag-moment { display: grid; grid-template-columns: 72px 1fr; gap: 0 20px; padding: 22px 0 26px; border-top: 1px solid var(--lijn-2); }

@@ -132,54 +132,52 @@ const vragen: [string, string][] = [
 export default function Landing() {
   return (
     <main className="flex-1">
-      <header className="sticky top-0 z-20 border-b border-lijn/70 bg-papier/90 backdrop-blur">
+      <header className="sticky top-0 z-20 bg-inkt/95 text-white backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-          <Woordmerk />
-          <nav className="flex items-center gap-6 text-[15px] text-tekst-2">
-            <a href="#dag" className="hidden hover:text-tekst md:inline">Hoe het werkt</a>
-            <a href="#werkt-met" className="hidden hover:text-tekst md:inline">Werkt met</a>
-            <a href="#prijs" className="hidden hover:text-tekst md:inline">Prijs</a>
-            <Link href="/login" className="hover:text-tekst">Inloggen</Link>
-            <Link href="/login" className="knop knop-klein hidden sm:inline-flex">Gratis proberen</Link>
+          <Woordmerk donker />
+          <nav className="flex items-center gap-6 text-[15px] text-white/70">
+            <a href="#dag" className="hidden hover:text-white md:inline">Hoe het werkt</a>
+            <a href="#werkt-met" className="hidden hover:text-white md:inline">Werkt met</a>
+            <a href="#prijs" className="hidden hover:text-white md:inline">Prijs</a>
+            <Link href="/login" className="hover:text-white">Inloggen</Link>
+            <Link href="/login" className="knop knop-klein hidden bg-mosterd text-inkt hover:bg-[#f0c74a] sm:inline-flex">Gratis proberen</Link>
           </nav>
         </div>
       </header>
 
-      {/* Held op kasboekpapier */}
-      <section className="kasboek">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-16 pt-10 md:grid-cols-[1.2fr_.8fr] md:pb-24 md:pt-16">
-          <div className="kasboek-marge">
+      {/* Held: de nacht. Het bonnetje is het enige licht. */}
+      <section className="nacht text-white">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-14 md:grid-cols-[1.2fr_.8fr] md:pb-28 md:pt-24">
+          <div>
             <h1 className="display text-[44px] font-semibold leading-[1] tracking-[-0.02em] md:text-[66px]">
               Je boekhouding doet zichzelf.<br />
-              <span className="text-groen">’s Nachts.</span>
+              <span className="text-mosterd">’s Nachts.</span>
             </h1>
-            <p className="mt-7 max-w-md text-[19px] leading-[1.5] text-tekst-2">
+            <p className="mt-7 max-w-md text-[19px] leading-[1.5] text-white/70">
               Koppel je bank. Vannacht boekt de bot je regels, hangt je bonnen eraan, stuurt herinneringen en zet je btw-aangifte klaar. Jij tikt af en toe een antwoord.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-5">
-              <Link href="/login" className="knop knop-groen px-7 py-4 text-[16px]">Start gratis, 30 dagen</Link>
-              <span className="text-[15px] leading-snug text-tekst-2">Geen creditcard. Daarna € {PRIJS} per maand,<br className="hidden sm:block" /> maandelijks opzegbaar.</span>
+              <Link href="/login" className="knop bg-mosterd px-7 py-4 text-[16px] text-inkt hover:bg-[#f0c74a]">Start gratis, 30 dagen</Link>
+              <span className="text-[15px] leading-snug text-white/60">Geen creditcard. Daarna € {PRIJS} per maand,<br className="hidden sm:block" /> maandelijks opzegbaar.</span>
             </div>
           </div>
           <Bonnetje />
         </div>
       </section>
 
-      {/* Werkt met: één regel, geen tegels */}
-      <section id="werkt-met" className="border-y border-lijn bg-white">
-        <div className="mx-auto max-w-6xl px-6 py-10">
-          {[["Banken", banken], ["Verkoopkanalen", kanalen], ["Overstappen van", pakketten]].map(([kop, lijst]) => (
-            <div key={kop as string} className="flex flex-wrap items-center gap-x-7 gap-y-3 py-3 [&+&]:border-t [&+&]:border-lijn">
-              <span className="w-36 shrink-0 text-[15px] text-tekst-2">{kop as string}</span>
-              {(lijst as LogoId[]).map((b) => <Logo key={b} id={b} hoogte={20} className="logo-stil" />)}
-            </div>
-          ))}
-          <p className="mt-4 text-[14px] text-tekst-3">Elke Nederlandse bank via PSD2. Alle koppelingen alleen-lezen: niemand kan geld overmaken, ook de bot niet.</p>
+      {/* Werkt met: gelijke vakjes, woordmerken zonder naam erachter */}
+      <section id="werkt-met" className="bg-papier">
+        <div className="mx-auto max-w-6xl px-6 py-16">
+          <p className="text-[17px] text-tekst-2">Werkt met elke Nederlandse bank, je verkoopkanalen en het pakket waar je vandaan komt.</p>
+          <div className="merken mt-6">
+            {[...banken, ...kanalen, ...pakketten].map((b) => <div key={b} className="merk"><Logo id={b} hoogte={22} /></div>)}
+          </div>
+          <p className="mt-4 text-[14px] text-tekst-3">Alle koppelingen alleen-lezen: niemand kan geld overmaken, ook de bot niet.</p>
         </div>
       </section>
 
       {/* Een etmaal */}
-      <section id="dag" className="kasboek">
+      <section id="dag" className="kasboek border-t border-lijn">
         <div className="mx-auto max-w-6xl px-6 py-20">
           <div className="kasboek-marge">
             <h2 className="display max-w-2xl text-[38px] font-semibold leading-[1.05] md:text-[48px]">Een etmaal met {MERK}.</h2>
@@ -206,7 +204,7 @@ export default function Landing() {
       </section>
 
       {/* Prijs: één som, zoals onderaan een bon */}
-      <section id="prijs" className="border-t border-lijn bg-white">
+      <section id="prijs" className="bg-white">
         <div className="mx-auto grid max-w-6xl gap-14 px-6 py-20 md:grid-cols-2 md:items-start">
           <div>
             <h2 className="display text-[38px] font-semibold leading-[1.05] md:text-[48px]">Eén prijs. Alles erin.</h2>
