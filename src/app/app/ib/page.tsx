@@ -1,0 +1,113 @@
+import { connection } from "next/server";
+import Link from "next/link";
+import { db, huidigeOnderneming } from "@/lib/db";
+import { btwAangifte, euro } from "@/lib/btw";
+import { winstVerlies } from "@/lib/fiscaal/winst";
+import { berekenIb } from "@/lib/fiscaal/ib";
+import { korCheck } from "@/lib/fiscaal/kor";
+import * as C from "@/lib/fiscaal/constanten-2026";
+import { ibInstellingenOpslaan } from "@/lib/acties-fiscaal";
+import { Cijferband, Kaart, Kop, Tegel, knop, knopLicht, veld } from "@/components/ui";
+
+export const instant = false;
+
+export default async function Ib({ searchParams }: { searchParams: Promise<{ j?: string }> }) {
+  await connection();
+  const sp = await searchParams;
+  const o = await huidigeOnderneming();
+  const nu = new Date();
+  const jaar = Number(sp.j) || nu.getFullYear();
+  const start = new Date(jaar, 0, 1);
+  const eind = new Date(jaar + 1, 0, 1);
+  const maanden = jaar === nu.getFullYear() ? nu.getMonth() + 1 : 12;
+
+  const [wv, uren, km, activa, aov, alleRegels] = await Promise.all([
+    winstVerlies(o.id, start, eind),
+    db.urenregel.aggregate({ where: { ondernemingId: o.id, datum: { gte: start, lt: eind } }, _sum: { uren: true } }),
+    db.kilometerregel.aggregate({ where: { ondernemingId: o.id, datum: { gte: start, lt: eind } }, _sum: { vergoeding: true } }),
+    db.activum.findMany({ where: { ondernemingId: o.id, aanschafDatum: { gte: start, lt: eind }, kiaToegepast: true } }),
+    db.transactie.aggregate({ where: { ondernemingId: o.id, datum: { gte: start, lt: eind }, categorie: "aov" }, _sum: { bedrag: true } }),
+    db.transactie.findMany({ where: { ondernemingId: o.id, datum: { gte: start, lt: eind } }, select: { bedrag: true, btwCode: true, btwBedrag: true, zakelijk: true, categorie: true, priveDeel: true } }),
+  ]);
+  const urenTotaal = uren._sum.uren ?? 0;
+  const ib = berekenIb({
+    fiscaleWinst: wv.fiscaleWinst,
+    uren: urenTotaal,
+    urenCriteriumGehaald: o.urencriterium && urenTotaal === 0 ? true : undefined,
+    starter: o.starter,
+    investeringen: activa.reduce((s, a) => s + a.aanschafBedrag * (1 - a.priveDeel), 0),
+    kilometerVergoeding: km._sum.vergoeding ?? 0,
+    aovPremie: Math.abs(aov._sum.bedrag ?? 0),
+    maandenVerstreken: maanden,
+  });
+  const btwJaar = btwAangifte(alleRegels);
+  const kor = korCheck({
+    omzetJaar: wv.omzet,
+    maandenVerstreken: maanden,
+    deelnemer: o.korDeelnemer,
+    btwSaldoJaar: btwJaar["5c_te_betalen"],
+    voorbelasting: btwJaar["5b_voorbelasting"],
+  });
+  const verwachteWinst = Math.round((wv.fiscaleWinst / maanden) * 12);
+  const ibJaar = maanden < 12 ? berekenIb({ fiscaleWinst: verwachteWinst, uren: Math.round((urenTotaal / maanden) * 12), urenCriteriumGehaald: o.urencriterium && urenTotaal === 0 ? true : undefined, starter: o.starter, investeringen: 0, kilometerVergoeding: ((km._sum.vergoeding ?? 0) / maanden) * 12 }) : ib;
+  const korGoedNieuws = kor.komtInAanmerking && kor.voordeel > 250 && !kor.deelnemer;
+
+  return (
+    <>
+      <Kop titel={`Inkomstenbelasting ${jaar}`} sub="Een indicatie uit je boekhouding. Partner, hypotheek en spaargeld komen hier niet in; die vul je zelf aan bij de aangifte.">
+        <Link href={`/app/ib?j=${jaar - 1}`} className={knopLicht}>{jaar - 1}</Link>
+        <Link href={`/app/ib?j=${jaar + 1}`} className={knopLicht}>{jaar + 1}</Link>
+      </Kop>
+
+      <Cijferband>
+        <Tegel label="Fiscale winst tot nu" waarde={wv.fiscaleWinst} hint={`${maanden} van 12 maanden`} />
+        <Tegel label="Belasting en Zvw tot nu" waarde={ib.teBetalen} hint={`${(ib.effectiefTarief * 100).toFixed(1).replace(".", ",")}% van je winst`} />
+        <Tegel label="Verwacht over het hele jaar" waarde={ibJaar.teBetalen} hint={`bij een winst rond ${euro(verwachteWinst)}`} />
+        <Tegel label="Zet per maand apart" waarde={Math.round(ibJaar.teBetalen / 12)} accent="groen" hint="dan is de aanslag geen verrassing" />
+      </Cijferband>
+
+      <Kaart titel="Zo komt het bedrag tot stand" className="mt-6">
+        <table className="tabel">
+          <tbody>
+            {ib.regels.map((r, i) => (
+              <tr key={i}>
+                <td><span className="font-medium">{r.label}</span><span className="block text-[14px] text-tekst-2">{r.uitleg}</span></td>
+                <td className={`num ${r.bedrag < 0 ? "text-groen-tekst" : ""}`}>{euro(r.bedrag)}</td>
+              </tr>
+            ))}
+            <tr className="bg-papier"><td className="font-medium">Belastbaar inkomen in box 1</td><td className="num font-medium">{euro(ib.belastbaarInkomen)}</td></tr>
+            <tr><td>Inkomstenbelasting<span className="block text-[14px] text-tekst-2">Schijven van 35,70%, 37,56% en 49,50%</span></td><td className="num">{euro(ib.belasting + ib.algemeneHeffingskorting + ib.arbeidskorting)}</td></tr>
+            <tr><td>Algemene heffingskorting</td><td className="num text-groen-tekst">{euro(-ib.algemeneHeffingskorting)}</td></tr>
+            <tr><td>Arbeidskorting</td><td className="num text-groen-tekst">{euro(-ib.arbeidskorting)}</td></tr>
+            <tr><td>Bijdrage Zorgverzekeringswet<span className="block text-[14px] text-tekst-2">{(C.ZVW.percentage * 100).toFixed(2).replace(".", ",")}% over je inkomen</span></td><td className="num">{euro(ib.zvw)}</td></tr>
+            <tr className="bg-inkt text-white [&>td]:border-0"><td className="font-semibold">Te betalen, als indicatie</td><td className="num cijfer text-[20px]">{euro(ib.teBetalen)}</td></tr>
+          </tbody>
+        </table>
+        <p className="px-5 py-3 text-[14px] text-tekst-3">
+          Urencriterium: {ib.urenCriterium.gehaald ? "gehaald" : "nog niet gehaald"}, {ib.urenCriterium.uren.toFixed(0)} van {ib.urenCriterium.nodig} uur. <Link href="/app/uren" className="underline">Uren bijhouden</Link>. Rekent met de cijfers van {C.JAAR}.
+        </p>
+      </Kaart>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <Kaart titel="Kleineondernemersregeling">
+          <div className="px-5 py-4">
+            <p className={`rounded-lg px-4 py-3 text-sm ${korGoedNieuws ? "bg-groen-licht text-groen-tekst" : "bg-papier text-tekst"}`}>{kor.advies}</p>
+            <ul className="mt-3 space-y-1 text-[14px] text-tekst-2">{kor.toelichting.map((t, i) => <li key={i}>{t}</li>)}</ul>
+          </div>
+        </Kaart>
+        <Kaart titel="Jouw situatie">
+          <form action={ibInstellingenOpslaan} className="space-y-3 px-5 py-4 text-sm">
+            <label className="flex items-start gap-3"><input type="checkbox" name="urencriterium" value="ja" defaultChecked={o.urencriterium} className="mt-1" /><span>Ik haal de 1.225 uur, ook als ik niet alles registreer</span></label>
+            <label className="flex items-start gap-3"><input type="checkbox" name="starter" value="ja" defaultChecked={o.starter} className="mt-1" /><span>Ik heb recht op startersaftrek<span className="block text-[14px] text-tekst-2">Maximaal drie keer in je eerste vijf jaar</span></span></label>
+            <label className="flex items-start gap-3"><input type="checkbox" name="korDeelnemer" value="ja" defaultChecked={o.korDeelnemer} className="mt-1" /><span>Ik doe mee aan de KOR</span></label>
+            <div>
+              <label className="lbl" htmlFor="btwTijdvak">Hoe vaak doe je btw-aangifte?</label>
+              <select id="btwTijdvak" name="btwTijdvak" defaultValue={o.btwTijdvak} className={veld}><option value="maand">Elke maand</option><option value="kwartaal">Elk kwartaal</option><option value="jaar">Elk jaar</option></select>
+            </div>
+            <button className={knop}>Opslaan</button>
+          </form>
+        </Kaart>
+      </div>
+    </>
+  );
+}

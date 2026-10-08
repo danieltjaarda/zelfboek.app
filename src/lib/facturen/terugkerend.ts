@@ -1,0 +1,80 @@
+import { db } from "@/lib/db";
+import { berekenTotalen, parseRegels } from "./bereken";
+import { volgendFactuurnummer } from "./nummering";
+import { verzendFactuur } from "./verzend";
+
+export function volgendeDatum(d: Date, interval: string): Date {
+  const n = new Date(d);
+  if (interval === "week") {
+    n.setDate(n.getDate() + 7);
+    return n;
+  }
+  const maanden = interval === "kwartaal" ? 3 : interval === "jaar" ? 12 : 1;
+  const dag = n.getDate();
+  n.setDate(1);
+  n.setMonth(n.getMonth() + maanden);
+  const laatste = new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate();
+  n.setDate(Math.min(dag, laatste)); // 31 januari + 1 maand = 28/29 februari
+  return n;
+}
+
+/** Contract: maakTerugkerendeFacturen(ondernemingId) → { aangemaakt }. Draait dagelijks vanuit de cron. */
+export async function maakTerugkerendeFacturen(ondernemingId: string): Promise<{ aangemaakt: number }> {
+  const vandaag = new Date();
+  vandaag.setHours(23, 59, 59, 999);
+  const o = await db.onderneming.findUniqueOrThrow({ where: { id: ondernemingId } });
+  const lijst = await db.terugkerendeFactuur.findMany({
+    where: { ondernemingId, actief: true, volgendeOp: { lte: vandaag } },
+    include: { klant: true },
+  });
+  let aangemaakt = 0;
+  for (const t of lijst) {
+    // Beveiliging tegen oneindige lus bij oude volgendeOp: hooguit 12 stappen per run.
+    let stappen = 0;
+    while (t.volgendeOp <= vandaag && stappen < 12) {
+      if (t.eindigtOp && t.volgendeOp > t.eindigtOp) {
+        await db.terugkerendeFactuur.update({ where: { id: t.id }, data: { actief: false } });
+        break;
+      }
+      const regels = parseRegels(t.regels);
+      const tot = berekenTotalen(regels, t.klant, o);
+      const nummer = await volgendFactuurnummer(ondernemingId);
+      const termijn = t.klant.betaaltermijn ?? o.betaaltermijn;
+      const f = await db.factuur.create({
+        data: {
+          ondernemingId,
+          klantId: t.klantId,
+          nummer,
+          datum: t.volgendeOp,
+          vervaldatum: new Date(t.volgendeOp.getTime() + termijn * 864e5),
+          regels: JSON.stringify(regels),
+          subtotaal: tot.subtotaal,
+          btw: tot.btw,
+          totaal: tot.totaal,
+          btwVerlegd: tot.btwVerlegd,
+          referentie: t.omschrijving,
+          terugkerendId: t.id,
+          status: "concept",
+        },
+      });
+      aangemaakt++;
+      t.volgendeOp = volgendeDatum(t.volgendeOp, t.interval);
+      await db.terugkerendeFactuur.update({ where: { id: t.id }, data: { volgendeOp: t.volgendeOp } });
+      if (t.autoVerzenden && t.klant.email) {
+        try {
+          await verzendFactuur(f.id, ondernemingId);
+        } catch (e) {
+          await db.melding.create({
+            data: { ondernemingId, soort: "systeem", titel: "Terugkerende factuur niet verzonden", tekst: `${nummer}: ${e instanceof Error ? e.message : String(e)}`, link: `/app/facturen/${f.id}` },
+          });
+        }
+      } else {
+        await db.melding.create({
+          data: { ondernemingId, soort: "systeem", titel: "Terugkerende factuur klaar", tekst: `${nummer} voor ${t.klant.naam} staat als concept klaar.`, link: `/app/facturen/${f.id}` },
+        });
+      }
+      stappen++;
+    }
+  }
+  return { aangemaakt };
+}

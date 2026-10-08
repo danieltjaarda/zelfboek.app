@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  --inkt: #13201a;
+  --inkt-2: #1c2e25;
+  --inkt-3: #2a4034;
+  --papier: #f4f6f2;
+  --wit: #ffffff;
+  --lijn: #e1e6df;
+  --lijn-2: #cfd6cc;
+  --tekst: #16211b;
+  --tekst-2: #5b6a61;
+  --tekst-3: #8a978f;
+  --groen: #1e6b47;
+  --groen-licht: #e3f1e9;
+  --groen-tekst: #17543a;
+  --mosterd: #e8b931;
+  --mosterd-licht: #fbf1cf;
+  --mosterd-tekst: #6e5300;
+  --rood: #c33d2e;
+  --rood-licht: #fae5e2;
+  --rood-tekst: #8f2a1f;
+  --radius: 14px;
+  --radius-s: 8px;
+}
+
+@theme inline {
+  --color-inkt: var(--inkt);
+  --color-inkt-2: var(--inkt-2);
+  --color-inkt-3: var(--inkt-3);
+  --color-papier: var(--papier);
+  --color-lijn: var(--lijn);
+  --color-lijn-2: var(--lijn-2);
+  --color-tekst: var(--tekst);
+  --color-tekst-2: var(--tekst-2);
+  --color-tekst-3: var(--tekst-3);
+  --color-groen: var(--groen);
+  --color-groen-licht: var(--groen-licht);
+  --color-groen-tekst: var(--groen-tekst);
+  --color-mosterd: var(--mosterd);
+  --color-mosterd-licht: var(--mosterd-licht);
+  --color-mosterd-tekst: var(--mosterd-tekst);
+  --color-rood: var(--rood);
+  --color-rood-licht: var(--rood-licht);
+  --color-rood-tekst: var(--rood-tekst);
+  --font-sans: var(--font-body), system-ui, sans-serif;
+  --font-display: var(--font-display), var(--font-body), sans-serif;
+}
+
+body {
+  background: var(--papier);
+  color: var(--tekst);
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+h1, h2, h3, .display {
+  font-family: var(--font-display), sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.cijfer {
+  font-family: var(--font-display), sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.tabular { font-variant-numeric: tabular-nums; }
+
+@layer components {
+/* Kaart: één vlak, één dunne lijn, geen schaduw. Hiërarchie komt van positie en grootte. */
+.kaart {
+  background: var(--wit);
+  border: 1px solid var(--lijn);
+  border-radius: var(--radius);
+}
+
+/* Tabel: lijnen alleen tussen rijen, kopregel klein en rustig. */
+.tabel { width: 100%; font-size: 15px; }
+.tabel th {
+  text-align: left; font-weight: 500; color: var(--tekst-2);
+  padding: 12px 16px; border-bottom: 1px solid var(--lijn); font-size: 14px;
+}
+.tabel td { padding: 14px 16px; border-bottom: 1px solid var(--lijn); vertical-align: top; }
+.tabel tr:last-child td { border-bottom: 0; }
+.tabel td.num, .tabel th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* Formulier */
+.veld {
+  width: 100%; background: var(--wit); border: 1px solid var(--lijn-2); border-radius: var(--radius-s);
+  padding: 10px 12px; font-size: 15px; color: var(--tekst);
+}
+.veld:focus { outline: 2px solid var(--groen); outline-offset: 0; border-color: var(--groen); }
+.veld-klein { padding: 6px 9px; font-size: 14px; border-radius: 6px; }
+label.lbl { display: block; font-size: 14px; color: var(--tekst-2); margin-bottom: 4px; }
+
+/* Knoppen */
+.knop, .knop-licht, .knop-tekst {
+  display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; font-weight: 500;
+  font-size: 15px; padding: 10px 20px; border: 1px solid transparent; cursor: pointer; white-space: nowrap;
+}
+.knop { background: var(--inkt); color: #fff; }
+.knop:hover { background: var(--inkt-3); }
+.knop-groen { background: var(--groen); color: #fff; }
+.knop-groen:hover { background: var(--groen-tekst); }
+.knop-licht { background: var(--wit); color: var(--tekst); border-color: var(--lijn-2); }
+.knop-licht:hover { background: var(--papier); }
+.knop-tekst { padding: 6px 10px; color: var(--tekst-2); }
+.knop-tekst:hover { color: var(--tekst); background: var(--papier); }
+.knop:disabled, .knop-licht:disabled { opacity: .5; cursor: default; }
+.knop-klein { padding: 7px 14px; font-size: 14px; }
+
+/* Status */
+.pil { display: inline-flex; align-items: center; border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 500; white-space: nowrap; }
+.pil-groen { background: var(--groen-licht); color: var(--groen-tekst); }
+.pil-geel { background: var(--mosterd-licht); color: var(--mosterd-tekst); }
+.pil-rood { background: var(--rood-licht); color: var(--rood-tekst); }
+.pil-grijs { background: var(--lijn); color: var(--tekst-2); }
+
+}
+
+:focus-visible { outline: 2px solid var(--groen); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+@media print {
+  aside, nav, .print\:hidden { display: none !important; }
+  body { background: #fff; }
+  main { padding: 0 !important; }
+}
+
+/* Eén georkestreerde animatie op de homepage: het nachtlog dat regel voor regel verschijnt en herhaalt. */
+@keyframes nachtlog-regel {
+  0% { opacity: 0; transform: translateY(6px); }
+  6% { opacity: 1; transform: translateY(0); }
+  88% { opacity: 1; transform: translateY(0); }
+  94%, 100% { opacity: 0; transform: translateY(-4px); }
+}
+@keyframes nachtlog-vink {
+  0%, 4% { stroke-dashoffset: 24; }
+  10%, 100% { stroke-dashoffset: 0; }
+}
+@keyframes nachtlog-balk {
+  0% { width: 0; }
+  80%, 100% { width: 100%; }
+}
+.nachtlog-regel { animation: nachtlog-regel 14s ease-in-out infinite both; }
+.nachtlog-vink { stroke-dasharray: 24; animation: nachtlog-vink 14s ease-out infinite both; }
+.nachtlog-balk { animation: nachtlog-balk 14s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .nachtlog-regel, .nachtlog-vink, .nachtlog-balk { animation: none; opacity: 1; stroke-dashoffset: 0; width: 100%; }
+}
+
+/* Browser-raam om een echt scherm van de app heen. */
+.raam { border-radius: 14px; overflow: hidden; border: 1px solid var(--lijn-2); background: #fff; box-shadow: 0 40px 80px -40px rgba(19,32,26,.45), 0 1px 0 rgba(0,0,0,.03); }
+.raam-balk { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: #eef1ec; border-bottom: 1px solid var(--lijn); }
+.raam-balk i { width: 10px; height: 10px; border-radius: 50%; background: var(--lijn-2); display: block; }
+.raam-balk span { margin-left: 10px; flex: 1; height: 20px; border-radius: 6px; background: #fff; font-size: 11px; color: var(--tekst-3); display: flex; align-items: center; padding: 0 10px; }
+
+/* Logowand */
+.logo-tegel { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0 12px; background: #fff; border: 1px solid var(--lijn); border-radius: 12px; height: 72px; font-size: 15px; font-weight: 500; }
+.logo-tegel img { opacity: 1; }
+
+/* Vertrouwensstrook */
+.trust { display: flex; flex-wrap: wrap; gap: 12px 24px; font-size: 15px; color: var(--tekst-2); }
+.trust > span { display: inline-flex; align-items: center; gap: 8px; }
