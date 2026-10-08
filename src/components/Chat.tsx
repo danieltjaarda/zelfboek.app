@@ -12,7 +12,7 @@ const SUGGESTIES = [
   "Hoe sta ik ervoor met het urencriterium?",
 ];
 
-export function Chat({ gesprekId: startId, start, eersteVraag }: { gesprekId: string | null; start: Bericht[]; eersteVraag?: string }) {
+export function Chat({ gesprekId: startId, start, eersteVraag, compact = false }: { gesprekId: string | null; start: Bericht[]; eersteVraag?: string; compact?: boolean }) {
   const [gesprekId, setGesprekId] = useState<string | null>(startId);
   const [berichten, setBerichten] = useState<Bericht[]>(start);
   const [invoer, setInvoer] = useState("");
@@ -69,11 +69,11 @@ export function Chat({ gesprekId: startId, start, eersteVraag }: { gesprekId: st
   }
 
   return (
-    <div className="kaart flex h-[calc(100vh-11rem)] min-h-[420px] flex-col">
-      <div className="flex-1 space-y-3 overflow-y-auto p-5">
+    <div className={compact ? "flex h-full min-h-0 flex-col" : "kaart flex h-[calc(100vh-11rem)] min-h-[420px] flex-col"}>
+      <div className={`flex-1 space-y-3 overflow-y-auto ${compact ? "p-4" : "p-5"}`}>
         {berichten.length === 0 && (
-          <div className="mx-auto max-w-lg py-8 text-center">
-            <p className="text-[18px] font-semibold">Waar wil je meer over weten?</p>
+          <div className={`mx-auto max-w-lg text-center ${compact ? "py-5" : "py-8"}`}>
+            <p className={`font-semibold ${compact ? "text-[15px]" : "text-[18px]"}`}>Waar wil je meer over weten?</p>
             <p className="mt-1 text-sm text-tekst-2">De bot kijkt in je boekhouding en geeft antwoord in gewone taal.</p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {SUGGESTIES.map((s) => (
