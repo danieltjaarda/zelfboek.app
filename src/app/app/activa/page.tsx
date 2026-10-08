@@ -90,7 +90,7 @@ export default async function Activa() {
                 <summary className="flex cursor-pointer flex-wrap items-center justify-between gap-2">
                   <span>
                     <span className="font-medium">{a.naam}</span>
-                    <span className="block text-[14px] text-tekst-2">{categorieTekst[a.categorie] ?? a.categorie}, gekocht {datumNl(a.aanschafDatum)}, {a.looptijdJaren} jaar{a.priveDeel ? `, ${Math.round(a.priveDeel * 100)}% privé` : ""}</span>
+                    <span className="block text-[13px] text-tekst-2">{categorieTekst[a.categorie] ?? a.categorie}, gekocht {datumNl(a.aanschafDatum)}, {a.looptijdJaren} jaar{a.priveDeel ? `, ${Math.round(a.priveDeel * 100)}% privé` : ""}</span>
                   </span>
                   <span className="tabular text-sm">{a.verkochtOp ? `Verkocht ${datumNl(a.verkochtOp)}${resultaat != null ? `, boekresultaat ${euro(resultaat)}` : ""}` : <>Boekwaarde <span className="font-medium">{euro(bw.boekwaarde)}</span> van {euro(bw.aanschafZakelijk)}</>}</span>
                 </summary>
@@ -109,7 +109,7 @@ export default async function Activa() {
                         <button className="knop-licht knop-klein">Verkocht of buiten gebruik</button>
                       </form>
                     )}
-                    <form action={activumVerwijderen}><input type="hidden" name="id" value={a.id} /><button className="knop-tekst text-[14px] text-rood-tekst">Verwijderen, ook de afschrijvingen</button></form>
+                    <form action={activumVerwijderen}><input type="hidden" name="id" value={a.id} /><button className="knop-tekst text-[13px] text-rood-tekst">Verwijderen, ook de afschrijvingen</button></form>
                   </div>
                 </div>
               </details>

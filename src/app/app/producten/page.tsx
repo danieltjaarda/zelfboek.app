@@ -27,11 +27,11 @@ export default async function Producten() {
                 <tbody>
                   {producten.map((p) => (
                     <tr key={p.id}>
-                      <td><span className="font-medium">{p.naam}</span>{p.omschrijving && <span className="block text-[14px] text-tekst-3">{p.omschrijving}</span>}</td>
+                      <td><span className="font-medium">{p.naam}</span>{p.omschrijving && <span className="block text-[13px] text-tekst-3">{p.omschrijving}</span>}</td>
                       <td className="num">{euro(p.prijs)}</td>
                       <td>{p.btw}%</td>
                       <td>{p.eenheid}</td>
-                      <td className="num"><form action={productVerwijderen}><input type="hidden" name="id" value={p.id} /><button className="knop-tekst text-[14px]">Verwijderen</button></form></td>
+                      <td className="num"><form action={productVerwijderen}><input type="hidden" name="id" value={p.id} /><button className="knop-tekst text-[13px]">Verwijderen</button></form></td>
                     </tr>
                   ))}
                 </tbody>

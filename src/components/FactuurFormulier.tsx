@@ -101,7 +101,7 @@ export function FactuurFormulier({ soort, actie, klanten, producten, korDeelneme
         ) : undefined}
       >
         <div className="px-5 py-4">
-          <div className="hidden grid-cols-12 gap-2 text-[14px] text-tekst-2 sm:grid">
+          <div className="hidden grid-cols-12 gap-2 text-[13px] text-tekst-2 sm:grid">
             <span className="col-span-5">Omschrijving</span><span className="col-span-2">Aantal</span><span className="col-span-2">Prijs zonder btw</span><span className="col-span-2">Btw</span><span />
           </div>
           {regels.map((r, i) => (
@@ -126,8 +126,8 @@ export function FactuurFormulier({ soort, actie, klanten, producten, korDeelneme
             <div className="flex justify-between"><span className="text-tekst-2">Subtotaal</span><span className="tabular">{euro(totalen.subtotaal)}</span></div>
             {totalen.perTarief.map((p) => <div key={p.tarief} className="flex justify-between"><span className="text-tekst-2">Btw {p.tarief}%</span><span className="tabular">{euro(p.btw)}</span></div>)}
             <div className="flex justify-between border-t border-lijn-2 pt-2 text-base font-semibold"><span>Totaal</span><span className="cijfer text-[18px]">{euro(totalen.totaal)}</span></div>
-            {totalen.btwVerlegd && <p className="text-[14px] text-groen-tekst">Btw wordt verlegd naar de klant (ondernemer in de EU of buiten de EU).</p>}
-            {korDeelnemer && <p className="text-[14px] text-groen-tekst">Je doet mee aan de KOR, dus geen btw op deze factuur.</p>}
+            {totalen.btwVerlegd && <p className="text-[13px] text-groen-tekst">Btw wordt verlegd naar de klant (ondernemer in de EU of buiten de EU).</p>}
+            {korDeelnemer && <p className="text-[13px] text-groen-tekst">Je doet mee aan de KOR, dus geen btw op deze factuur.</p>}
           </div>
         </div>
       </Kaart>

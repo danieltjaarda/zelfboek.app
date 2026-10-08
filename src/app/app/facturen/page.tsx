@@ -55,9 +55,9 @@ export default async function Facturen({ searchParams }: { searchParams: Promise
 
       <div className="mt-6 flex flex-wrap items-center gap-2 text-sm">
         {filters.map((f) => (
-          <Link key={f.l} href={f.k ? `/app/facturen?filter=${f.k}` : "/app/facturen"} className={`rounded-full px-3 py-1 ${filter === f.k ? "bg-inkt text-white" : "bg-lijn text-tekst-2 hover:bg-lijn-2"}`}>{f.l}</Link>
+          <Link key={f.l} href={f.k ? `/app/facturen?filter=${f.k}` : "/app/facturen"} className={filter === f.k ? "chip chip-actief" : "chip"}>{f.l}</Link>
         ))}
-        <form className="ml-auto"><input name="q" defaultValue={q ?? ""} placeholder="Zoek op nummer of klant" aria-label="Zoeken" className="veld veld-klein w-56 rounded-full" /></form>
+        <form className="ml-auto"><input name="q" defaultValue={q ?? ""} placeholder="Zoek op nummer of klant" aria-label="Zoeken" className="veld veld-klein w-56" /></form>
       </div>
 
       {facturen.length === 0 ? (
@@ -81,21 +81,21 @@ export default async function Facturen({ searchParams }: { searchParams: Promise
                   <tr key={f.id}>
                     <td className="font-medium">
                       <Link href={`/app/facturen/${f.id}`} className="hover:underline">{f.nummer}</Link>
-                      {f.soort === "credit" && <span className="ml-1.5 text-[14px] text-tekst-3">credit</span>}
+                      {f.soort === "credit" && <span className="ml-1.5 text-[13px] text-tekst-3">credit</span>}
                     </td>
                     <td>{f.klant.naam}</td>
                     <td className="text-tekst-2">{datumNl(f.datum)}</td>
                     <td className={teLaatDagen > 0 ? "text-rood-tekst" : "text-tekst-2"}>
                       {datumNl(f.vervaldatum)}
-                      {teLaatDagen > 0 && <span className="block text-[14px]">{teLaatDagen} {teLaatDagen === 1 ? "dag" : "dagen"} te laat</span>}
+                      {teLaatDagen > 0 && <span className="block text-[13px]">{teLaatDagen} {teLaatDagen === 1 ? "dag" : "dagen"} te laat</span>}
                     </td>
                     <td className="num">
                       {euro(f.totaal)}
-                      {f.betaaldBedrag > 0 && f.status !== "betaald" && <span className="block text-[14px] text-tekst-3">{euro(f.betaaldBedrag)} ontvangen</span>}
+                      {f.betaaldBedrag > 0 && f.status !== "betaald" && <span className="block text-[13px] text-tekst-3">{euro(f.betaaldBedrag)} ontvangen</span>}
                     </td>
                     <td>
                       <Pil kleur={teLaatDagen > 0 && f.status === "verzonden" ? "rood" : statusPil[f.status] ?? "grijs"}>{statusTekst[f.status] ?? f.status}</Pil>
-                      {f.herinneringen > 0 && <span className="ml-1.5 text-[14px] text-tekst-3">{f.herinneringen}× herinnerd</span>}
+                      {f.herinneringen > 0 && <span className="ml-1.5 text-[13px] text-tekst-3">{f.herinneringen}× herinnerd</span>}
                     </td>
                     <td className="num">
                       {isOpen && (

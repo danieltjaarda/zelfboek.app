@@ -2,11 +2,11 @@ import { MERK } from "@/lib/merk";
 
 /** Beeldmerk: een open boek dat zichzelf afvinkt. */
 export function Beeldmerk({ size = 28, donker = false }: { size?: number; donker?: boolean }) {
-  const kleur = donker ? "#ffffff" : "var(--inkt)";
+  const kleur = donker ? "#ffffff" : "#16130f"; // vaste merkkleuren, los van het app-thema
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
       <rect x="2" y="4" width="28" height="24" rx="6" fill={kleur} />
-      <path d="M9 16.5l4.5 4.5L23 11.5" fill="none" stroke="var(--mosterd)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M9 16.5l4.5 4.5L23 11.5" fill="none" stroke="#e8b931" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -15,7 +15,7 @@ export function Woordmerk({ donker = false, size = 20 }: { donker?: boolean; siz
   return (
     <span className="inline-flex items-center gap-2">
       <Beeldmerk size={size + 8} donker={donker} />
-      <span className="display font-semibold tracking-tight" style={{ fontSize: size, color: donker ? "#fff" : "var(--inkt)" }}>{MERK}</span>
+      <span className="display font-semibold tracking-tight" style={{ fontSize: size, color: donker ? "#fff" : "var(--tekst)" }}>{MERK}</span>
     </span>
   );
 }
@@ -54,7 +54,7 @@ export function Logo({ id, hoogte = 22, metNaam: metNaamIn = true, className = "
     <span className={`inline-flex items-center gap-2.5 ${className}`} title={l.naam}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={`/logos/${l.bestand}`} alt={metNaam ? "" : l.naam} height={hoogte} style={{ height: hoogte, width: "auto", maxWidth: hoogte * 3.2, borderRadius: l.bestand.endsWith(".png") ? 5 : 0 }} loading="lazy" />
-      {metNaam && <span className="text-[14px] font-medium">{l.naam}</span>}
+      {metNaam && <span className="text-[13px] font-medium">{l.naam}</span>}
     </span>
   );
 }

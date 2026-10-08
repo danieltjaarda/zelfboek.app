@@ -67,9 +67,9 @@ export default async function Bank({ searchParams }: { searchParams: Promise<Zoe
             return (
               <Link key={r.id} href={link({ rekening: gekozen ? undefined : r.id, p: undefined })} aria-pressed={gekozen} className={`kaart block p-4 ${gekozen ? "border-inkt" : ""}`}>
                 <p className="truncate text-sm font-medium">{r.naam}</p>
-                <p className="truncate text-[14px] text-tekst-3">{r.iban}</p>
+                <p className="truncate text-[13px] text-tekst-3">{r.iban}</p>
                 <p className="cijfer mt-2 text-[22px] font-semibold">{r.saldo != null ? euro(r.saldo) : "–"}</p>
-                <p className="text-[14px] text-tekst-2">
+                <p className="text-[13px] text-tekst-2">
                   {r.bron === "psd2" ? "Automatisch" : bronLabel[r.bron] ?? r.bron}, {r.laatsteSync ? `bijgewerkt ${datumNl(r.laatsteSync)}` : "nog niet bijgewerkt"}
                   {r.psd2Verloopt && r.psd2Verloopt < nu && <span className="ml-1 text-rood-tekst">toestemming verlopen</span>}
                 </p>
@@ -93,7 +93,7 @@ export default async function Bank({ searchParams }: { searchParams: Promise<Zoe
       <div className="mt-8 flex flex-wrap items-center gap-2">
         {filters.map((f) => {
           const actief = sp.filter === f.k;
-          return <Link key={f.l} href={link({ filter: f.k, p: undefined })} aria-current={actief ? "page" : undefined} className={actief ? "knop knop-klein" : "knop-licht knop-klein"}>{f.l}</Link>;
+          return <Link key={f.l} href={link({ filter: f.k, p: undefined })} aria-current={actief ? "page" : undefined} className={actief ? "chip chip-actief" : "chip"}>{f.l}</Link>;
         })}
         <form className="flex w-full flex-wrap items-center gap-2 lg:ml-auto lg:w-auto" action="/app/bank" method="get">
           {sp.filter && <input type="hidden" name="filter" value={sp.filter} />}
@@ -128,20 +128,20 @@ export default async function Bank({ searchParams }: { searchParams: Promise<Zoe
               {regels.map((t) => {
                 const twijfelt = t.zakelijk !== null && !t.bevestigd;
                 return (
-                  <tr key={t.id} className={twijfelt ? "bg-mosterd-licht/40" : ""}>
+                  <tr key={t.id} className={twijfelt ? "bg-[#fffbeb]" : ""}>
                     <td className="whitespace-nowrap text-tekst-2">
                       {datumNl(t.datum)}
-                      <div className="text-[14px] text-tekst-3">{bronLabel[t.bron] ?? t.bron}{t.bankrekening ? `, ${t.bankrekening.naam}` : ""}</div>
+                      <div className="text-[13px] text-tekst-3">{bronLabel[t.bron] ?? t.bron}{t.bankrekening ? `, ${t.bankrekening.naam}` : ""}</div>
                     </td>
                     <td>
                       <div className="font-medium">{t.tegenpartij || "Onbekend"}</div>
-                      <div className="max-w-xs truncate text-[14px] text-tekst-3" title={t.omschrijving}>{t.omschrijving}</div>
-                      {t.uitleg && <div className="mt-1 max-w-xs text-[14px] text-tekst-2">{t.uitleg}</div>}
+                      <div className="max-w-xs truncate text-[13px] text-tekst-3" title={t.omschrijving}>{t.omschrijving}</div>
+                      {t.uitleg && <div className="mt-1 max-w-xs text-[13px] text-tekst-2">{t.uitleg}</div>}
                     </td>
                     <td className={`num ${t.bedrag > 0 ? "text-groen-tekst" : ""}`}>
                       {euro(t.bedrag)}
-                      {t.btwBedrag ? <div className="text-[14px] font-normal text-tekst-3">btw {euro(t.btwBedrag)}</div> : null}
-                      {t.priveDeel > 0 && <div className="text-[14px] font-normal text-mosterd-tekst">{Math.round(t.priveDeel * 100)}% privé</div>}
+                      {t.btwBedrag ? <div className="text-[13px] font-normal text-tekst-3">btw {euro(t.btwBedrag)}</div> : null}
+                      {t.priveDeel > 0 && <div className="text-[13px] font-normal text-mosterd-tekst">{Math.round(t.priveDeel * 100)}% privé</div>}
                     </td>
                     <td>
                       <form action={wijzigTransactie} className="space-y-1.5">
@@ -159,7 +159,7 @@ export default async function Bank({ searchParams }: { searchParams: Promise<Zoe
                           </select>
                           <button className={twijfelt ? "knop knop-klein" : "knop-licht knop-klein"}>{twijfelt ? "Bevestig" : "OK"}</button>
                         </div>
-                        <details className="text-[14px]">
+                        <details className="text-[13px]">
                           <summary className="cursor-pointer text-tekst-3 hover:text-tekst">Deels privé of splitsen</summary>
                           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                             <label className="flex items-center gap-1 text-tekst-2">Privégebruik
@@ -172,7 +172,7 @@ export default async function Bank({ searchParams }: { searchParams: Promise<Zoe
                         </details>
                       </form>
                     </td>
-                    <td className="whitespace-nowrap text-[14px]">
+                    <td className="whitespace-nowrap text-[13px]">
                       {t.zakelijk === null ? <Pil kleur="grijs">wacht op de bot</Pil>
                         : t.bevestigd ? <Pil kleur="groen">geboekt</Pil>
                         : <Pil kleur="geel">twijfel, {Math.round((t.zekerheid ?? 0) * 100)}% zeker</Pil>}

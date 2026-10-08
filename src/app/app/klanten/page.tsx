@@ -27,7 +27,7 @@ export default async function Klanten({ searchParams }: { searchParams: Promise<
   return (
     <>
       <Kop titel="Klanten" sub="Wie wat open heeft staan en wat ze dit jaar opleverden.">
-        <form><input name="q" defaultValue={q ?? ""} placeholder="Zoek een klant" aria-label="Zoeken" className="veld veld-klein w-56 rounded-full" /></form>
+        <form><input name="q" defaultValue={q ?? ""} placeholder="Zoek een klant" aria-label="Zoeken" className="veld veld-klein w-56" /></form>
       </Kop>
       <div className="grid gap-6 lg:grid-cols-[1.7fr_1fr]">
         <div>
@@ -44,7 +44,7 @@ export default async function Klanten({ searchParams }: { searchParams: Promise<
                     const openBedrag = open.get(k.id) ?? 0;
                     return (
                       <tr key={k.id}>
-                        <td className="font-medium"><Link href={`/app/klanten/${k.id}`} className="hover:underline">{k.naam}</Link>{k.land !== "NL" && <span className="ml-1.5 text-[14px] text-tekst-3">{k.land}</span>}</td>
+                        <td className="font-medium"><Link href={`/app/klanten/${k.id}`} className="hover:underline">{k.naam}</Link>{k.land !== "NL" && <span className="ml-1.5 text-[13px] text-tekst-3">{k.land}</span>}</td>
                         <td className="text-tekst-2">{k.email ?? <span className="text-tekst-3">geen</span>}</td>
                         <td className="num">{k._count.facturen}</td>
                         <td className="num">{euro(omzetMap.get(k.id) ?? 0)}</td>

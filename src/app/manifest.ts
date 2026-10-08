@@ -8,8 +8,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "AI-boekhouding voor zzp'ers. Bank, bonnen, facturen en btw, automatisch.",
     start_url: "/app",
     display: "standalone",
-    background_color: "#fafaf9",
-    theme_color: "#1c1917",
+    background_color: "#f6f8fa",
+    theme_color: "#ffffff",
     lang: "nl",
     icons: [{ src: "/favicon.ico", sizes: "any", type: "image/x-icon" }],
   };

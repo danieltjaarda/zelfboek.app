@@ -75,7 +75,7 @@ export default async function Uren({ searchParams }: { searchParams: Promise<{ j
       </div>
 
       {perKlant.size > 0 && (
-        <Kaart titel="Nog niet gefactureerd" className="mt-6" actie={<Link href="/app/klanten" className="knop-tekst text-[14px]">Naar klanten</Link>}>
+        <Kaart titel="Nog niet gefactureerd" className="mt-6" actie={<Link href="/app/klanten" className="knop-tekst text-[13px]">Naar klanten</Link>}>
           <ul className="divide-y divide-lijn text-sm">
             {[...perKlant.values()].map((k) => (
               <li key={k.naam} className="flex justify-between px-5 py-2.5"><span>{k.naam}</span><span className="tabular text-tekst-2">{uur(k.uren)}{k.bedrag ? `, ${euro(k.bedrag)}` : ""}</span></li>
@@ -100,7 +100,7 @@ export default async function Uren({ searchParams }: { searchParams: Promise<{ j
                   <td>{r.omschrijving}</td>
                   <td className="text-tekst-2">{r.soort === "declarabel" ? "Te factureren" : "Eigen zaak"}{r.gefactureerd ? ", gefactureerd" : ""}</td>
                   <td className="num">{r.uren.toLocaleString("nl-NL", { minimumFractionDigits: 2 })}</td>
-                  <td className="num"><form action={urenVerwijderen}><input type="hidden" name="id" value={r.id} /><button className="knop-tekst text-[14px]">Verwijderen</button></form></td>
+                  <td className="num"><form action={urenVerwijderen}><input type="hidden" name="id" value={r.id} /><button className="knop-tekst text-[13px]">Verwijderen</button></form></td>
                 </tr>
               ))}
             </tbody>

@@ -56,7 +56,7 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
           <div className="mt-5 grid gap-8 md:grid-cols-2">
             <div>
               <p className="text-sm font-medium">1. Toegang van Enable Banking</p>
-              <p className="mb-3 mt-1 text-[14px] text-tekst-3">enablebanking.com, Control Panel, Applications: de applicatie-id en de private key (PEM). Staan ze al op de server, dan kun je dit overslaan.</p>
+              <p className="mb-3 mt-1 text-[13px] text-tekst-3">enablebanking.com, Control Panel, Applications: de applicatie-id en de private key (PEM). Staan ze al op de server, dan kun je dit overslaan.</p>
               <ResultaatFormulier
                 actie={koppelingOpslaan}
                 verborgen={{ soort: "enablebanking" }}
@@ -95,7 +95,7 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
             <Kaart key={d.soort} titel={d.naam} actie={status(d.soort)}>
               <div className="p-5">
                 <p className="text-sm text-tekst-2">{d.uitleg}</p>
-                <p className="mt-2 text-[14px] text-tekst-3">Waar vind je dit? {d.waar}</p>
+                <p className="mt-2 text-[13px] text-tekst-3">Waar vind je dit? {d.waar}</p>
                 {k?.laatsteFout && <p className="mt-2 text-sm text-rood-tekst">{k.laatsteFout}</p>}
                 <div className="mt-4">
                   <ResultaatFormulier actie={koppelingOpslaan} verborgen={{ soort: d.soort }} velden={d.velden} knopTekst={k ? "Sleutels vervangen" : "Koppelen"} licht={Boolean(k)} />

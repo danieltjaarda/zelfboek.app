@@ -4,7 +4,7 @@ import { db, huidigeOnderneming } from "@/lib/db";
 import { btwAangifte, btwDeadline, datumNl, euro, periodeBereik, rond } from "@/lib/btw";
 import { CATEGORIE_INFO } from "@/lib/categorieen";
 import { huidigTijdvak } from "@/lib/assistent/tools";
-import { Cijferband, Kaart, Tegel } from "@/components/ui";
+import { Cijferband, Kaart, Kop, Tegel, knop, knopLicht } from "@/components/ui";
 import { OmzetGrafiek } from "@/components/OmzetGrafiek";
 import { EersteStappen } from "@/components/EersteStappen";
 
@@ -22,7 +22,7 @@ export default async function Overzicht() {
   const [regels, tijdvakRegels, twijfelRegels, twijfelTotaal, onbeoordeeld, openFacturen, bonnenLos, rekeningen, taken] = await Promise.all([
     db.transactie.findMany({ where: { ondernemingId: o.id, zakelijk: true, datum: { gte: new Date(Math.min(twaalfTerug.getTime(), new Date(jaar, 0, 1).getTime())) } } }),
     db.transactie.findMany({ where: { ondernemingId: o.id, datum: { gte: start, lt: eind } } }),
-    db.transactie.findMany({ where: { ondernemingId: o.id, bevestigd: false, zakelijk: { not: null } }, orderBy: { datum: "desc" }, take: 3 }),
+    db.transactie.findMany({ where: { ondernemingId: o.id, bevestigd: false, zakelijk: { not: null } }, orderBy: { datum: "desc" }, take: 4 }),
     db.transactie.count({ where: { ondernemingId: o.id, bevestigd: false, zakelijk: { not: null } } }),
     db.transactie.count({ where: { ondernemingId: o.id, zakelijk: null } }),
     db.factuur.findMany({ where: { ondernemingId: o.id, status: { in: ["verzonden", "herinnerd", "aangemaand"] } }, include: { klant: true }, orderBy: { vervaldatum: "asc" } }),
@@ -73,59 +73,64 @@ export default async function Overzicht() {
     { klaar: aantalFacturen > 0, titel: "Stuur je eerste factuur", tekst: "Met iDEAL-link. De bot volgt de betaling en herinnert zelf.", href: "/app/facturen/nieuw", knop: "Factuur maken" },
   ];
   const groet = nu.getHours() < 12 ? "Goedemorgen" : nu.getHours() < 18 ? "Goedemiddag" : "Goedenavond";
+  const teDoenTitel = aantalTransacties === 0 && vragen === 0 ? "Nog niets te boeken" : vragen === 0 ? "Alles is geboekt" : vragen === 1 ? "Alles is geboekt, één vraag voor je" : `Alles is geboekt, ${vragen} kleine vragen voor je`;
+  const btwZin = `Btw ${tijdvakNaam}: ${euro(Math.abs(aangifte["5c_te_betalen"]))} ${aangifte["5c_te_betalen"] >= 0 ? "te betalen" : "terug"}, uiterlijk ${datumNl(deadline)}${dagenTotDeadline <= 14 ? ` (over ${dagenTotDeadline} dagen)` : ""}.`;
 
   return (
     <>
-      <EersteStappen stappen={stappen} />
-      {/* Het statusblok is de held: één zin die zegt of je iets moet doen. */}
-      <section className="mb-6 overflow-hidden rounded-2xl bg-inkt text-white">
-        <div className="grid gap-8 px-6 py-6 [&>*]:min-w-0 md:grid-cols-[1.4fr_1fr] md:px-9 md:py-8">
-          <div>
-            <p className="text-[14px] text-white/55">{groet}, {o.naam}. {datumNl(nu)}.</p>
-            <h1 className="display mt-2 max-w-md break-words text-[26px] font-semibold leading-[1.12] text-white md:text-[34px]">
-              {aantalTransacties === 0 && vragen === 0 ? "Nog niets te boeken. Koppel je bank en de bot gaat aan de slag." : vragen === 0 ? "Alles is geboekt. Je hoeft vandaag niets te doen." : vragen === 1 ? "Alles is geboekt. Eén vraag voor je." : `Alles is geboekt. ${vragen} kleine vragen voor je.`}
-            </h1>
-            <p className="mt-3 max-w-md break-words text-[15px] text-white/65">
-              Btw {tijdvakNaam}: {euro(Math.abs(aangifte["5c_te_betalen"]))} {aangifte["5c_te_betalen"] >= 0 ? "te betalen" : "terug"}, uiterlijk {datumNl(deadline)}
-              {dagenTotDeadline <= 14 ? ` (over ${dagenTotDeadline} dagen)` : ""}.
-            </p>
-            <div className="mt-5 flex flex-wrap gap-2">
-              {vragen > 0 && <Link href="/app/bank?filter=twijfel" className="knop bg-mosterd text-inkt hover:bg-[#f0c74a]">Beantwoord de vragen</Link>}
-              {aantalTransacties === 0 && vragen === 0 && <Link href="/app/koppelingen" className="knop bg-mosterd text-inkt hover:bg-[#f0c74a]">Bank koppelen</Link>}
-              <Link href="/app/assistent" className="knop-licht border-white/20 bg-transparent text-white hover:bg-white/10">Vraag het de bot</Link>
-            </div>
-          </div>
+      <Kop titel={`${groet}, ${o.naam}`} sub={datumNl(nu)}>
+        <Link href="/app/assistent" className={knopLicht}>Vraag het de bot</Link>
+        <Link href="/app/facturen/nieuw" className={knop}>Nieuwe factuur</Link>
+      </Kop>
 
-          <ul className="min-w-0 divide-y divide-white/10 self-center text-[15px]">
+      <EersteStappen stappen={stappen} />
+
+      {/* Te doen: één regel die zegt of je iets moet doen, daaronder de open vragen. */}
+      <Kaart className="mb-6" titel={teDoenTitel} actie={
+        vragen > 0 ? <Link href="/app/bank?filter=twijfel" className="knop knop-klein">Beantwoord de vragen</Link>
+        : aantalTransacties === 0 ? <Link href="/app/koppelingen" className="knop knop-klein">Bank koppelen</Link> : undefined
+      }>
+        {vragen === 0 ? (
+          <p className="flex items-center gap-2.5 px-5 py-4 text-sm text-tekst-2">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-groen-licht text-groen">
+              <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </span>
+            {aantalTransacties === 0 ? "Zodra er bankregels zijn, boekt de bot ze elke nacht en stelt alleen vragen bij twijfel." : "Geen open vragen. De bot kijkt elke nacht opnieuw."}
+          </p>
+        ) : (
+          <ul className="divide-y divide-lijn">
             {twijfelRegels.map((t) => (
-              <li key={t.id} className="flex items-start gap-3 py-2.5">
-                <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full bg-mosterd" />
-                <Link href="/app/bank?filter=twijfel" className="min-w-0 flex-1 hover:underline">
-                  <span className="block truncate">{t.tegenpartij} {euro(Math.abs(t.bedrag))}: zakelijk of privé?</span>
-                  <span className="block truncate text-white/50">{t.uitleg}</span>
+              <li key={t.id}>
+                <Link href="/app/bank?filter=twijfel" className="flex items-center gap-3 px-5 py-3 hover:bg-papier">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-mosterd" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-medium">{t.tegenpartij} {euro(Math.abs(t.bedrag))}: zakelijk of privé?</span>
+                    <span className="block truncate text-[13px] text-tekst-3">{t.uitleg}</span>
+                  </span>
+                  <span className="text-[13px] text-tekst-3">{datumNl(t.datum)}</span>
                 </Link>
               </li>
             ))}
-            {taken.slice(0, Math.max(0, 4 - twijfelRegels.length)).map((t) => (
-              <li key={t.id} className="flex items-start gap-3 py-2.5">
-                <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full bg-mosterd" />
-                <Link href="/app/meldingen" className="min-w-0 flex-1 truncate hover:underline">{t.titel}</Link>
-              </li>
-            ))}
-            {bonnenLos > 0 && (
-              <li className="flex items-start gap-3 py-2.5">
-                <span className="mt-[7px] h-2 w-2 shrink-0 rounded-full bg-mosterd" />
-                <Link href="/app/bonnen?status=uitgelezen" className="hover:underline">{bonnenLos} {bonnenLos === 1 ? "bon hoort" : "bonnen horen"} nog bij geen bankregel</Link>
-              </li>
+            {twijfelTotaal > twijfelRegels.length && (
+              <li><Link href="/app/bank?filter=twijfel" className="block px-5 py-2.5 text-[13px] text-tekst-2 hover:bg-papier">Nog {twijfelTotaal - twijfelRegels.length} twijfelregels</Link></li>
             )}
-            {vragen === 0 && <li className="py-2.5 text-white/55">{aantalTransacties === 0 ? "Zodra er bankregels zijn, boekt de bot ze elke nacht en stelt alleen vragen bij twijfel." : "Geen open vragen. De bot kijkt elke nacht opnieuw."}</li>}
+            {onbeoordeeld > 0 && (
+              <li><Link href="/app/bank?filter=open" className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-papier"><span className="h-2 w-2 shrink-0 rounded-full bg-tekst-3" />{onbeoordeeld} {onbeoordeeld === 1 ? "regel wacht" : "regels wachten"} nog op de bot</Link></li>
+            )}
+            {bonnenLos > 0 && (
+              <li><Link href="/app/bonnen?status=uitgelezen" className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-papier"><span className="h-2 w-2 shrink-0 rounded-full bg-mosterd" />{bonnenLos} {bonnenLos === 1 ? "bon hoort" : "bonnen horen"} nog bij geen bankregel</Link></li>
+            )}
+            {taken.map((t) => (
+              <li key={t.id}><Link href="/app/meldingen" className="flex items-center gap-3 px-5 py-3 text-sm hover:bg-papier"><span className="h-2 w-2 shrink-0 rounded-full bg-mosterd" /><span className="min-w-0 flex-1 truncate">{t.titel}</span>{t.deadline && <span className="text-[13px] text-tekst-3">{datumNl(t.deadline)}</span>}</Link></li>
+            ))}
           </ul>
-        </div>
-      </section>
+        )}
+        <p className="border-t border-lijn bg-papier px-5 py-2.5 text-[13px] text-tekst-2">{btwZin} <Link href="/app/btw" className="font-medium text-groen-tekst hover:underline">Naar de aangifte</Link></p>
+      </Kaart>
 
       <Cijferband>
-        <Tegel label={`Omzet ${jaar}`} waarde={omzetJaar} hint="zonder btw" />
-        <Tegel label={`Kosten ${jaar}`} waarde={kostenJaar} hint="zonder btw" />
+        <Tegel label={`Omzet ${jaar}`} waarde={omzetJaar} hint="zonder btw" reeks={maanden.map((m) => m.omzet)} />
+        <Tegel label={`Kosten ${jaar}`} waarde={kostenJaar} hint="zonder btw" reeks={maanden.map((m) => m.kosten)} reeksKleur="var(--tekst-3)" />
         <Tegel label="Winst tot nu" waarde={winst} accent={winst >= 0 ? "groen" : "rood"} hint="basis voor je IB" />
         <Tegel label="Op de bank" waarde={rekeningen.some((r) => r.saldo != null) ? saldo : "–"} hint={`${rekeningen.length} ${rekeningen.length === 1 ? "rekening" : "rekeningen"}`} />
         <Tegel label="Nog te ontvangen" waarde={openBedrag} accent={teLaat.length ? "rood" : undefined} hint={teLaat.length ? `${teLaat.length} te laat` : `${openFacturen.length} open`} />
@@ -133,15 +138,15 @@ export default async function Overzicht() {
       </Cijferband>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
-        <Kaart titel="Omzet en kosten, laatste 12 maanden" actie={<Link href="/app/jaarrekening" className="knop-tekst text-[14px]">Jaarrekening</Link>}>
+        <Kaart titel="Omzet en kosten, laatste 12 maanden" actie={<Link href="/app/jaarrekening" className="knop-tekst knop-klein">Jaarrekening</Link>}>
           <div className="px-5 pb-5 pt-4">
             <OmzetGrafiek data={maanden.map((m) => ({ label: m.label, omzet: rond(m.omzet), kosten: rond(m.kosten) }))} />
           </div>
         </Kaart>
 
-        <Kaart titel="Openstaande facturen" actie={<Link href="/app/facturen" className="knop-tekst text-[14px]">Alle facturen</Link>}>
+        <Kaart titel="Openstaande facturen" actie={<Link href="/app/facturen" className="knop-tekst knop-klein">Alle facturen</Link>}>
           {openFacturen.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-tekst-2">Niets open. <Link href="/app/facturen/nieuw" className="text-groen underline">Nieuwe factuur</Link></p>
+            <p className="px-5 py-8 text-center text-sm text-tekst-2">Niets open. <Link href="/app/facturen/nieuw" className="text-groen-tekst underline">Nieuwe factuur</Link></p>
           ) : (
             <ul className="divide-y divide-lijn">
               {openFacturen.slice(0, 6).map((f) => {
@@ -150,11 +155,11 @@ export default async function Overzicht() {
                   <li key={f.id} className="flex items-center gap-3 px-5 py-3 text-sm">
                     <div className="min-w-0 flex-1">
                       <Link href={`/app/facturen/${f.id}`} className="block truncate font-medium hover:underline">{f.klant.naam}</Link>
-                      <span className={`text-[14px] ${laat ? "text-rood-tekst" : "text-tekst-3"}`}>
+                      <span className={`text-[13px] ${laat ? "text-rood-tekst" : "text-tekst-3"}`}>
                         {f.nummer}, {laat ? `${Math.ceil((nu.getTime() - f.vervaldatum.getTime()) / 864e5)} dagen te laat` : `vervalt ${datumNl(f.vervaldatum)}`}
                       </span>
                     </div>
-                    <span className="cijfer text-[15px]">{euro(f.totaal - f.betaaldBedrag)}</span>
+                    <span className="cijfer">{euro(f.totaal - f.betaaldBedrag)}</span>
                   </li>
                 );
               })}

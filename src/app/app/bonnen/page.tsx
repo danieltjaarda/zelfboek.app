@@ -35,14 +35,14 @@ export default async function Bonnen({ searchParams }: { searchParams: Promise<{
     <>
       <Kop titel="Bonnen" sub="Maak een foto of sleep een PDF. De bot leest het bedrag en hangt de bon aan de bankregel." />
       <BonUpload actie={uploadBonnen} />
-      <p className="mt-3 text-[15px] text-tekst-2">
+      <p className="mt-3 text-sm text-tekst-2">
         Of mail je bonnen naar <span className="rounded bg-white px-2 py-0.5 font-medium text-tekst ring-1 ring-lijn">bonnen+{o.id}@{process.env.INBOUND_DOMEIN ?? "zelfboek.nl"}</span>. Stuur de bon als bijlage door, de bot doet de rest.
       </p>
 
       <div className="mt-6 flex flex-wrap gap-2">
         {filters.map((f) => {
           const actief = sp.status === f.k;
-          return <Link key={f.l} href={f.k ? `/app/bonnen?status=${f.k}` : "/app/bonnen"} aria-current={actief ? "page" : undefined} className={actief ? "knop knop-klein" : "knop-licht knop-klein"}>{f.l}</Link>;
+          return <Link key={f.l} href={f.k ? `/app/bonnen?status=${f.k}` : "/app/bonnen"} aria-current={actief ? "page" : undefined} className={actief ? "chip chip-actief" : "chip"}>{f.l}</Link>;
         })}
       </div>
 
@@ -61,7 +61,7 @@ export default async function Bonnen({ searchParams }: { searchParams: Promise<{
                     <td className="whitespace-nowrap text-tekst-2">{b.datum ? datumNl(b.datum) : "–"}</td>
                     <td>
                       <Link href={`/app/bonnen?${sp.status ? `status=${sp.status}&` : ""}b=${b.id}`} className="font-medium hover:underline">{b.leverancier ?? b.bestandsnaam}</Link>
-                      {b.uitleg && <div className="max-w-xs truncate text-[14px] text-tekst-3">{b.uitleg}</div>}
+                      {b.uitleg && <div className="max-w-xs truncate text-[13px] text-tekst-3">{b.uitleg}</div>}
                     </td>
                     <td className="num">{b.totaal != null ? euro(b.totaal) : "–"}</td>
                     <td className="num text-tekst-2">{b.btwBedrag != null ? euro(b.btwBedrag) : "–"}</td>
@@ -78,8 +78,8 @@ export default async function Bonnen({ searchParams }: { searchParams: Promise<{
           <aside className="kaart lg:sticky lg:top-6">
             <header className="flex items-start justify-between gap-3 border-b border-lijn px-5 py-4">
               <div className="min-w-0">
-                <h2 className="truncate text-[15px] font-semibold">{geselecteerd.leverancier ?? geselecteerd.bestandsnaam}</h2>
-                <p className="truncate text-[14px] text-tekst-3">{geselecteerd.bestandsnaam}, {Math.round((geselecteerd.zekerheid ?? 0) * 100)}% zeker gelezen</p>
+                <h2 className="truncate text-sm font-semibold">{geselecteerd.leverancier ?? geselecteerd.bestandsnaam}</h2>
+                <p className="truncate text-[13px] text-tekst-3">{geselecteerd.bestandsnaam}, {Math.round((geselecteerd.zekerheid ?? 0) * 100)}% zeker gelezen</p>
               </div>
               <Link href={lijstLink} className="knop-tekst knop-klein">Sluiten</Link>
             </header>
@@ -134,7 +134,7 @@ export default async function Bonnen({ searchParams }: { searchParams: Promise<{
                   <p className="mt-1 text-sm text-tekst-2">Geen passende bankregel gevonden. Privé betaald? Dan hoef je niets te doen.</p>
                 ) : (
                   <>
-                    <p className="mt-1 text-[14px] text-tekst-3">Kies de regel die bij deze bon hoort.</p>
+                    <p className="mt-1 text-[13px] text-tekst-3">Kies de regel die bij deze bon hoort.</p>
                     <ul className="mt-2 space-y-1.5 text-sm">
                       {kandidaten.map((t) => (
                         <li key={t.id} className="flex items-center justify-between gap-2">

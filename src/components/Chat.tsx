@@ -66,7 +66,7 @@ export function Chat({ gesprekId: startId, start }: { gesprekId: string | null; 
       <div className="flex-1 space-y-3 overflow-y-auto p-5">
         {berichten.length === 0 && (
           <div className="mx-auto max-w-lg py-8 text-center">
-            <p className="display text-[22px] font-semibold">Waar wil je meer over weten?</p>
+            <p className="text-[18px] font-semibold">Waar wil je meer over weten?</p>
             <p className="mt-1 text-sm text-tekst-2">De bot kijkt in je boekhouding en geeft antwoord in gewone taal.</p>
             <div className="mt-5 flex flex-wrap justify-center gap-2">
               {SUGGESTIES.map((s) => (
@@ -77,7 +77,7 @@ export function Chat({ gesprekId: startId, start }: { gesprekId: string | null; 
         )}
         {berichten.map((b, i) => (
           <div key={i} className={b.rol === "user" ? "flex justify-end" : "flex justify-start"}>
-            <div className={`max-w-[80%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-[14px] leading-relaxed ${b.rol === "user" ? "rounded-br-md bg-inkt text-white" : "kaart rounded-bl-md"}`}>
+            <div className={`max-w-[80%] whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm leading-relaxed ${b.rol === "user" ? "rounded-br-md bg-inkt text-white" : "kaart rounded-bl-md"}`}>
               {b.tekst || (bezig && i === berichten.length - 1 ? <span className="text-tekst-3">{b.tool ? `Kijkt in je boekhouding (${b.tool.replace(/_/g, " ")})` : "Denkt na"}</span> : "")}
             </div>
           </div>

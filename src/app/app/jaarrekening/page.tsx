@@ -37,19 +37,19 @@ export default async function JaarrekeningPagina({ searchParams }: { searchParam
         <Kaart titel="Winst-en-verliesrekening">
           <table className="tabel">
             <tbody>
-              <tr><td colSpan={2} className="pb-1 text-[14px] text-tekst-2">Omzet</td></tr>
+              <tr><td colSpan={2} className="pb-1 text-[13px] text-tekst-2">Omzet</td></tr>
               {jr.wv.omzetRegels.map((r) => <tr key={r.categorie}><td>{r.label}</td><td className="num">{euro(r.bruto)}</td></tr>)}
               <tr className="bg-papier"><td className="font-medium">Totaal omzet</td><td className="num font-medium">{euro(jr.wv.omzet)}</td></tr>
-              <tr><td colSpan={2} className="pb-1 pt-4 text-[14px] text-tekst-2">Kosten</td></tr>
+              <tr><td colSpan={2} className="pb-1 pt-4 text-[13px] text-tekst-2">Kosten</td></tr>
               {jr.wv.kostenRegels.map((r) => (
                 <tr key={r.categorie}>
-                  <td>{r.label}{r.aftrekbaar !== r.bruto ? <span className="block text-[14px] text-tekst-3">fiscaal aftrekbaar {euro(r.aftrekbaar)}</span> : null}</td>
+                  <td>{r.label}{r.aftrekbaar !== r.bruto ? <span className="block text-[13px] text-tekst-3">fiscaal aftrekbaar {euro(r.aftrekbaar)}</span> : null}</td>
                   <td className="num">{euro(r.bruto)}</td>
                 </tr>
               ))}
               <tr className="bg-papier"><td className="font-medium">Totaal kosten</td><td className="num font-medium">{euro(jr.wv.kosten)}</td></tr>
-              <tr className="bg-inkt text-white [&>td]:border-0"><td className="font-semibold">Resultaat</td><td className="num cijfer text-[18px]">{euro(jr.wv.winst)}</td></tr>
-              <tr><td className="text-[14px] text-tekst-2">Fiscale winst, na beperkt aftrekbare kosten</td><td className="num text-[14px] text-tekst-2">{euro(jr.wv.fiscaleWinst)}</td></tr>
+              <tr className="bg-papier font-semibold"><td className="font-semibold">Resultaat</td><td className="num cijfer text-[18px]">{euro(jr.wv.winst)}</td></tr>
+              <tr><td className="text-[13px] text-tekst-2">Fiscale winst, na beperkt aftrekbare kosten</td><td className="num text-[13px] text-tekst-2">{euro(jr.wv.fiscaleWinst)}</td></tr>
             </tbody>
           </table>
         </Kaart>
@@ -58,21 +58,21 @@ export default async function JaarrekeningPagina({ searchParams }: { searchParam
           <div className="grid gap-x-6 sm:grid-cols-2">
             <table className="tabel">
               <tbody>
-                <tr><td colSpan={2} className="pb-1 text-[14px] text-tekst-2">Bezittingen</td></tr>
+                <tr><td colSpan={2} className="pb-1 text-[13px] text-tekst-2">Bezittingen</td></tr>
                 {jr.activa.map((p) => <tr key={p.label}><td>{p.label}</td><td className="num">{euro(p.bedrag)}</td></tr>)}
                 <tr className="bg-papier"><td className="font-medium">Totaal</td><td className="num font-medium">{euro(jr.totaalActiva)}</td></tr>
               </tbody>
             </table>
             <table className="tabel">
               <tbody>
-                <tr><td colSpan={2} className="pb-1 text-[14px] text-tekst-2">Vermogen en schulden</td></tr>
+                <tr><td colSpan={2} className="pb-1 text-[13px] text-tekst-2">Vermogen en schulden</td></tr>
                 {jr.passiva.map((p) => <tr key={p.label}><td>{p.label}</td><td className="num">{euro(p.bedrag)}</td></tr>)}
                 <tr className="bg-papier"><td className="font-medium">Totaal</td><td className="num font-medium">{euro(jr.totaalPassiva)}</td></tr>
               </tbody>
             </table>
           </div>
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 border-t border-lijn px-5 py-4 text-sm">
-            {jr.kengetallen.map((k) => <div key={k.label}><dt className="text-[14px] text-tekst-2">{k.label}</dt><dd className="font-medium">{k.waarde}</dd></div>)}
+            {jr.kengetallen.map((k) => <div key={k.label}><dt className="text-[13px] text-tekst-2">{k.label}</dt><dd className="font-medium">{k.waarde}</dd></div>)}
           </dl>
         </Kaart>
       </div>

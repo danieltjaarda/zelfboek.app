@@ -16,7 +16,7 @@ export function Bestandskiezer({ name = "bestand", accept, required, hint, id, m
       onDragOver={(e) => { e.preventDefault(); setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDrop={() => setOver(false)}
-      className={`flex min-h-[46px] w-full cursor-pointer items-center gap-3 rounded-[8px] border border-dashed bg-white px-3 py-2 text-[15px] transition-colors ${over ? "border-groen bg-groen-licht" : "border-lijn-2 hover:border-tekst-3"}`}
+      className={`flex min-h-[46px] w-full cursor-pointer items-center gap-3 rounded-[8px] border border-dashed bg-white px-3 py-2 text-sm transition-colors ${over ? "border-groen bg-groen-licht" : "border-lijn-2 hover:border-tekst-3"}`}
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-tekst-3" aria-hidden>
         <path d="M12 16V5" /><path d="M8 9l4-4 4 4" /><path d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2" />

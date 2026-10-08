@@ -64,7 +64,7 @@ export default async function Kilometers() {
                   <td className="text-tekst-2">{vervoerTekst[r.vervoer] ?? r.vervoer}</td>
                   <td className="num">{r.km.toLocaleString("nl-NL", { maximumFractionDigits: 1 })}</td>
                   <td className="num">{euro(r.vergoeding)}</td>
-                  <td className="num"><form action={kilometersVerwijderen}><input type="hidden" name="id" value={r.id} /><button className="knop-tekst text-[14px]">Verwijderen</button></form></td>
+                  <td className="num"><form action={kilometersVerwijderen}><input type="hidden" name="id" value={r.id} /><button className="knop-tekst text-[13px]">Verwijderen</button></form></td>
                 </tr>
               ))}
             </tbody>

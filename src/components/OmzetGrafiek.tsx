@@ -24,13 +24,13 @@ export function OmzetGrafiek({ data }: { data: Punt[] }) {
     return (
       <div className="flex h-48 flex-col items-center justify-center text-center">
         <p className="text-sm text-tekst-2">Hier komt je omzet en kosten per maand.</p>
-        <p className="mt-1 text-[14px] text-tekst-3">Zodra er bankregels zijn, vult de grafiek zichzelf.</p>
+        <p className="mt-1 text-[13px] text-tekst-3">Zodra er bankregels zijn, vult de grafiek zichzelf.</p>
       </div>
     );
   }
   return (
     <figure>
-      <div className="mb-3 flex flex-wrap gap-x-6 gap-y-1 text-[14px] text-tekst-2">
+      <div className="mb-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-tekst-2">
         <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-groen" />Omzet {euro(totaalOmzet)}</span>
         <span className="flex items-center gap-2"><span className="h-[2px] w-3 bg-inkt" />Kosten {euro(totaalKosten)}</span>
       </div>

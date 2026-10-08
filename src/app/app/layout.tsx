@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { abonnementStatus, huidigeOnderneming, logUit, vereisGebruiker, wisselOnderneming } from "@/lib/auth";
-import { Zijbalk } from "@/components/Zijbalk";
+import { Schil } from "@/components/Schil";
 
 export const instant = false;
 
@@ -28,24 +28,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
-      <Zijbalk
-        onderneming={{ id: o.id, naam: o.naam }}
-        ondernemingen={ondernemingen.map((l) => ({ id: l.ondernemingId, naam: l.onderneming.naam }))}
-        email={sessie.gebruiker.email}
-        status={status}
-        tellers={{ meldingen: ongelezen, bank: twijfel }}
-        uitloggen={uitloggen}
-        wissel={wissel}
-      />
-      <main className="min-w-0 flex-1 px-5 py-7 md:px-10 md:py-9">
-        {!status.toegang && (
-          <p className="mb-6 rounded-lg bg-rood-licht px-4 py-3 text-sm text-rood-tekst">
-            Je proefperiode is voorbij. <Link href="/app/instellingen?tab=abonnement" className="underline">Start je abonnement</Link> om verder te boeken. Bekijken kan altijd.
-          </p>
-        )}
-        <div className="mx-auto max-w-6xl">{children}</div>
-      </main>
-    </div>
+    <Schil
+      onderneming={{ id: o.id, naam: o.naam }}
+      ondernemingen={ondernemingen.map((l) => ({ id: l.ondernemingId, naam: l.onderneming.naam }))}
+      email={sessie.gebruiker.email}
+      status={status}
+      tellers={{ meldingen: ongelezen, bank: twijfel }}
+      uitloggen={uitloggen}
+      wissel={wissel}
+    >
+      {!status.toegang && (
+        <p className="mb-6 rounded-md border border-[#f5c2cc] bg-rood-licht px-4 py-3 text-sm text-rood-tekst">
+          Je proefperiode is voorbij. <Link href="/app/instellingen?tab=abonnement" className="underline">Start je abonnement</Link> om verder te boeken. Bekijken kan altijd.
+        </p>
+      )}
+      {children}
+    </Schil>
   );
 }

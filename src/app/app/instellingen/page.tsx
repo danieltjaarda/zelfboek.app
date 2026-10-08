@@ -19,7 +19,7 @@ function Veld({ naam, label, waarde, type = "text", hint, breed }: { naam: strin
     <div className={breed ? "sm:col-span-2" : ""}>
       <label className="lbl" htmlFor={naam}>{label}</label>
       <input id={naam} name={naam} type={type} defaultValue={waarde ?? ""} className={veld} />
-      {hint && <p className="mt-1 text-[14px] text-tekst-3">{hint}</p>}
+      {hint && <p className="mt-1 text-[13px] text-tekst-3">{hint}</p>}
     </div>
   );
 }
@@ -28,7 +28,7 @@ function Vinkje({ naam, label, uitleg, aan }: { naam: string; label: string; uit
   return (
     <label className="flex items-start gap-3 text-sm">
       <input type="checkbox" name={naam} defaultChecked={aan} className="mt-1 h-4 w-4 accent-groen" />
-      <span>{label}<span className="block text-[14px] text-tekst-3">{uitleg}</span></span>
+      <span>{label}<span className="block text-[13px] text-tekst-3">{uitleg}</span></span>
     </label>
   );
 }
@@ -50,7 +50,7 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
       <Kop titel="Instellingen" />
       <nav className="mb-6 flex flex-wrap gap-2" aria-label="Onderdelen">
         {tabs.map((t) => (
-          <Link key={t.k} href={`/app/instellingen?tab=${t.k}`} aria-current={tab === t.k ? "page" : undefined} className={tab === t.k ? "knop knop-klein" : "knop-licht knop-klein"}>{t.l}</Link>
+          <Link key={t.k} href={`/app/instellingen?tab=${t.k}`} aria-current={tab === t.k ? "page" : undefined} className={tab === t.k ? "chip chip-actief" : "chip"}>{t.l}</Link>
         ))}
       </nav>
       {sp.stripe === "gelukt" && <div className="mb-4 max-w-2xl"><Melding r={{ ok: true, melding: "Je abonnement is gestart." }} /></div>}
@@ -92,7 +92,7 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
             <div>
               <label className="lbl" htmlFor="logo">Logo</label>
               <Bestandskiezer id="logo" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" hint="PNG, JPG, WebP of SVG" />
-              <p className="mt-1 text-[14px] text-tekst-3">{o.logoPad ? "Er staat een logo. Upload een nieuw bestand om het te vervangen." : "PNG, JPG, WEBP of SVG, tot 2 MB."}</p>
+              <p className="mt-1 text-[13px] text-tekst-3">{o.logoPad ? "Er staat een logo. Upload een nieuw bestand om het te vervangen." : "PNG, JPG, WEBP of SVG, tot 2 MB."}</p>
             </div>
             <div className="sm:col-span-2">
               <label className="lbl" htmlFor="factuurVoettekst">Voettekst op facturen</label>
@@ -110,7 +110,7 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
           <div>
             <label className="lbl" htmlFor="btwTijdvak">Btw-aangifte</label>
             <select id="btwTijdvak" name="btwTijdvak" defaultValue={o.btwTijdvak} className={veld}><option value="maand">Elke maand</option><option value="kwartaal">Elk kwartaal</option><option value="jaar">Elk jaar</option></select>
-            <p className="mt-1 text-[14px] text-tekst-3">Staat in de brief van de Belastingdienst. De meeste zzp&apos;ers doen aangifte per kwartaal.</p>
+            <p className="mt-1 text-[13px] text-tekst-3">Staat in de brief van de Belastingdienst. De meeste zzp&apos;ers doen aangifte per kwartaal.</p>
           </div>
           <div className="space-y-4 border-t border-lijn pt-5">
             <Vinkje naam="korDeelnemer" label="Ik doe mee aan de kleineondernemersregeling (KOR)" uitleg="Dan reken je geen btw en doe je geen btw-aangifte. Kan alleen onder 20.000 euro omzet per jaar." aan={o.korDeelnemer} />
@@ -124,7 +124,7 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
       {tab === "team" && (
         <div className={kaart}>
           <div>
-            <h2 className="text-[15px] font-semibold">Wie heeft toegang</h2>
+            <h2 className="text-sm font-semibold">Wie heeft toegang</h2>
             <ul className="mt-2 divide-y divide-lijn">
               {leden.map((l) => (
                 <li key={l.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
@@ -147,10 +147,10 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
       {tab === "email" && (
         <div className={kaart}>
           <div>
-            <h2 className="text-[15px] font-semibold">E-mail versturen</h2>
+            <h2 className="text-sm font-semibold">E-mail versturen</h2>
             <p className="mt-1 text-sm text-tekst-2">Facturen, herinneringen, inlogcodes en het weekoverzicht gaan via SMTP.</p>
             <p className="mt-2 text-sm">{smtpIngesteld ? <><Pil kleur="groen">ingesteld</Pil> <span className="text-tekst-2">via {process.env.SMTP_HOST}</span></> : <><Pil kleur="geel">niet ingesteld</Pil> <span className="text-tekst-2">mail wordt lokaal bewaard in plaats van verstuurd</span></>}</p>
-            <p className="mt-2 text-[14px] text-tekst-3">Werkt met Resend, Postmark, Mailgun, Brevo of je eigen mailserver. Zet op de server: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE en MAIL_VAN.</p>
+            <p className="mt-2 text-[13px] text-tekst-3">Werkt met Resend, Postmark, Mailgun, Brevo of je eigen mailserver. Zet op de server: SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, SMTP_SECURE en MAIL_VAN.</p>
           </div>
           <div className="border-t border-lijn pt-5">
             <FormulierMetMelding actie={async () => { "use server"; return smtpTest(); }} knopTekst={`Stuur een testmail naar ${s.gebruiker.email}`} />
@@ -161,7 +161,7 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
       {tab === "abonnement" && (
         <div className={kaart} id="abonnement">
           <div>
-            <h2 className="text-[15px] font-semibold">Abonnement</h2>
+            <h2 className="text-sm font-semibold">Abonnement</h2>
             <p className="mt-2 text-sm"><Pil kleur={status.toegang ? "groen" : "rood"}>{status.tekst}</Pil>{o.proefTot && o.abonnement === "proef" ? <span className="ml-2 text-tekst-2">tot {datumNl(o.proefTot)}</span> : null}</p>
             <p className="mt-2 text-sm text-tekst-2">€ 50 per maand zonder btw, elke maand opzegbaar.</p>
           </div>
@@ -171,7 +171,7 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
             ) : (
               <form action="/api/stripe/checkout" method="post"><button className="knop knop-groen" disabled={!stripeIngesteld}>Abonnement starten</button></form>
             )}
-            {!stripeIngesteld && <p className="mt-2 text-[14px] text-tekst-3">Betalen is nog niet ingesteld op deze server.</p>}
+            {!stripeIngesteld && <p className="mt-2 text-[13px] text-tekst-3">Betalen is nog niet ingesteld op deze server.</p>}
           </div>
         </div>
       )}
@@ -179,7 +179,7 @@ export default async function Instellingen({ searchParams }: { searchParams: Pro
       {tab === "gevaar" && (
         <div className={`${kaart} border-rood/40`}>
           <div>
-            <h2 className="text-[15px] font-semibold text-rood-tekst">Onderneming verwijderen</h2>
+            <h2 className="text-sm font-semibold text-rood-tekst">Onderneming verwijderen</h2>
             <p className="mt-1 text-sm text-tekst-2">Verwijdert alle bankregels, bonnen, facturen en instellingen van {o.naam}. Dit kan niet ongedaan worden gemaakt. Download eerst je exports.</p>
           </div>
           <FormulierMetMelding actie={ondernemingVerwijderen} knopTekst="Definitief verwijderen" gevaarlijk className="space-y-3 border-t border-lijn pt-5">

@@ -3,9 +3,9 @@ import { euro } from "@/lib/btw";
 /** Paginakop: titel links, acties rechts. Subregel alleen als die iets toevoegt. */
 export function Kop({ titel, sub, children }: { titel: string; sub?: string; children?: React.ReactNode }) {
   return (
-    <div className="mb-7 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <h1 className="text-[28px] font-semibold leading-tight">{titel}</h1>
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="min-w-0">
+        <h1 className="truncate text-[24px] font-semibold leading-tight tracking-[-0.01em]">{titel}</h1>
         {sub && <p className="mt-1 text-sm text-tekst-2">{sub}</p>}
       </div>
       {children && <div className="flex flex-wrap gap-2">{children}</div>}
@@ -13,32 +13,50 @@ export function Kop({ titel, sub, children }: { titel: string; sub?: string; chi
   );
 }
 
-/** Een cijfer met label. Gebruik ze in een rij met `Cijferband`, niet als losse kaartjes. */
-export function Tegel({ label, waarde, hint, accent }: { label: string; waarde: number | string; hint?: string; accent?: "groen" | "rood" | "geel" }) {
+/** Kleine lijngrafiek zonder assen, voor in een cijferkaart. */
+export function Sparkline({ reeks, kleur = "var(--groen)" }: { reeks: number[]; kleur?: string }) {
+  const B = 120, H = 32, p = 2;
+  const max = Math.max(1, ...reeks);
+  const x = (i: number) => p + (i * (B - 2 * p)) / Math.max(1, reeks.length - 1);
+  const y = (v: number) => H - p - ((H - 2 * p) * v) / max;
+  const lijn = reeks.map((v, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const vlak = `${lijn} L${x(reeks.length - 1).toFixed(1)},${H} L${x(0).toFixed(1)},${H} Z`;
+  if (reeks.every((v) => v === 0)) return null;
+  return (
+    <svg viewBox={`0 0 ${B} ${H}`} width={B} height={H} className="shrink-0" aria-hidden>
+      <path d={vlak} fill={kleur} fillOpacity={0.1} />
+      <path d={lijn} fill="none" stroke={kleur} strokeWidth={1.5} strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** Een cijfer met label in een eigen kaart. Zet ze naast elkaar met `Cijferband`. */
+export function Tegel({ label, waarde, hint, accent, reeks, reeksKleur }: {
+  label: string; waarde: number | string; hint?: string; accent?: "groen" | "rood" | "geel"; reeks?: number[]; reeksKleur?: string;
+}) {
   const kleur = accent === "groen" ? "text-groen-tekst" : accent === "rood" ? "text-rood-tekst" : accent === "geel" ? "text-mosterd-tekst" : "text-tekst";
   return (
-    <div className="min-w-0 px-5 py-4">
-      <p className="text-[14px] text-tekst-2">{label}</p>
-      <p className={`cijfer mt-1 text-[24px] font-semibold leading-tight ${kleur}`}>{typeof waarde === "number" ? euro(waarde) : waarde}</p>
-      {hint && <p className="mt-0.5 text-[14px] text-tekst-3">{hint}</p>}
+    <div className="kaart flex min-w-0 items-end justify-between gap-3 px-5 py-4">
+      <div className="min-w-0">
+        <p className="truncate text-[13px] font-medium text-tekst-2">{label}</p>
+        <p className={`cijfer mt-1 truncate text-[24px] font-semibold leading-tight tracking-[-0.02em] ${kleur}`}>{typeof waarde === "number" ? euro(waarde) : waarde}</p>
+        {hint && <p className="mt-0.5 truncate text-[13px] text-tekst-3">{hint}</p>}
+      </div>
+      {reeks && <Sparkline reeks={reeks} kleur={reeksKleur} />}
     </div>
   );
 }
 
-/** Rij van Tegels gescheiden door dunne lijnen. */
+/** Rij van Tegels: aparte kaarten in een raster. */
 export function Cijferband({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="kaart grid grid-cols-2 divide-y divide-lijn sm:grid-cols-3 sm:divide-x sm:divide-y-0 [&>*]:border-lijn">
-      {children}
-    </div>
-  );
+  return <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>;
 }
 
 export function Kaart({ titel, actie, children, className = "" }: { titel?: string; actie?: React.ReactNode; children: React.ReactNode; className?: string }) {
   return (
     <section className={`kaart ${className}`}>
       {(titel || actie) && (
-        <header className="flex items-center justify-between gap-3 border-b border-lijn px-5 py-3.5">
+        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-lijn px-5 py-3">
           {titel && <h2 className="text-[15px] font-semibold">{titel}</h2>}
           {actie}
         </header>
@@ -55,7 +73,7 @@ export function Pil({ kleur, children }: { kleur: "groen" | "geel" | "rood" | "g
 export function Melding({ r }: { r?: { ok: boolean; melding?: string; fout?: string } | null }) {
   if (!r) return null;
   return (
-    <p className={`rounded-lg px-4 py-3 text-sm ${r.ok ? "bg-groen-licht text-groen-tekst" : "bg-rood-licht text-rood-tekst"}`}>
+    <p className={`rounded-md border px-4 py-3 text-sm ${r.ok ? "border-[#bfe5d0] bg-groen-licht text-groen-tekst" : "border-[#f5c2cc] bg-rood-licht text-rood-tekst"}`}>
       {r.ok ? r.melding : r.fout}
     </p>
   );
@@ -64,7 +82,7 @@ export function Melding({ r }: { r?: { ok: boolean; melding?: string; fout?: str
 /** Lege staat: zeg wat de volgende stap is. */
 export function Leeg({ tekst, actie }: { tekst: string; actie?: React.ReactNode }) {
   return (
-    <div className="kaart flex flex-col items-center gap-3 border-dashed px-6 py-12 text-center">
+    <div className="kaart flex flex-col items-center gap-3 border-dashed px-6 py-12 text-center shadow-none">
       <p className="max-w-sm text-sm text-tekst-2">{tekst}</p>
       {actie}
     </div>

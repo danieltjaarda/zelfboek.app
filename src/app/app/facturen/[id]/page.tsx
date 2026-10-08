@@ -117,7 +117,7 @@ export default async function FactuurDetail({ params }: { params: Promise<{ id: 
                   <li key={t.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm">
                     <span className="min-w-0">
                       <span className="text-tekst-2">{datumNl(t.datum)}</span> {t.tegenpartij} <span className="tabular font-medium">{euro(t.bedrag)}</span>
-                      <span className="block truncate text-[14px] text-tekst-3">{t.omschrijving.slice(0, 60)}</span>
+                      <span className="block truncate text-[13px] text-tekst-3">{t.omschrijving.slice(0, 60)}</span>
                     </span>
                     <form action={factuurAfletteren}><input type="hidden" name="id" value={f.id} /><input type="hidden" name="transactieId" value={t.id} /><button className="knop knop-groen knop-klein">Dit is de betaling</button></form>
                   </li>

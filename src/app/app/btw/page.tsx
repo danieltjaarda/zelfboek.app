@@ -104,7 +104,7 @@ export default async function Btw({ searchParams }: { searchParams: Promise<{ j?
             })}
             <tr className="bg-papier"><td className="tabular font-medium">5a</td><td>Verschuldigde omzetbelasting</td><td></td><td className="num font-medium">{euro(a["5a_verschuldigd"])}</td></tr>
             <tr><td className="tabular font-medium">5b</td><td>Voorbelasting</td><td></td><td className="num">{euro(a["5b_voorbelasting"])}</td></tr>
-            <tr className="bg-inkt text-white [&>td]:border-0">
+            <tr className="bg-papier font-semibold">
               <td className="tabular font-medium">5c</td>
               <td className="font-semibold">{a["5c_te_betalen"] >= 0 ? "Te betalen" : "Terug te vragen"}</td>
               <td></td>
@@ -120,13 +120,13 @@ export default async function Btw({ searchParams }: { searchParams: Promise<{ j?
         {icp.regels.length > 0 && <a href={`/api/exports/icp?${q}`} className={knopLicht}>ICP-opgaaf als CSV</a>}
         <span className="ml-auto flex items-center gap-2 text-sm">
           <Pil kleur={statusPil[status] ?? "grijs"}>{statusTekst[status] ?? status}</Pil>
-          {opgeslagen?.ingediendOp && <span className="text-[14px] text-tekst-3">op {datumNl(opgeslagen.ingediendOp)}</span>}
+          {opgeslagen?.ingediendOp && <span className="text-[13px] text-tekst-3">op {datumNl(opgeslagen.ingediendOp)}</span>}
         </span>
         {(["klaar", "ingediend", "betaald"] as const).map((st) => (
           <form key={st} action={aangifteOpslaan}>
             <input type="hidden" name="soort" value="btw" /><input type="hidden" name="jaar" value={jaar} /><input type="hidden" name="periode" value={periode} />
             <input type="hidden" name="status" value={st} /><input type="hidden" name="bedrag" value={a["5c_te_betalen"]} /><input type="hidden" name="rubrieken" value={JSON.stringify(a)} />
-            <button className={status === st ? "knop knop-klein" : "knop-licht knop-klein"}>{st === "klaar" ? "Markeer als klaar" : st === "ingediend" ? "Ik heb ingediend" : "Ik heb betaald"}</button>
+            <button className={status === st ? "chip chip-actief" : "chip"}>{st === "klaar" ? "Markeer als klaar" : st === "ingediend" ? "Ik heb ingediend" : "Ik heb betaald"}</button>
           </form>
         ))}
       </div>
@@ -150,7 +150,7 @@ export default async function Btw({ searchParams }: { searchParams: Promise<{ j?
                 <tr key={h.id}>
                   <td>{periodeNaam(h)}</td>
                   <td className="num">{euro(h.bedrag)}</td>
-                  <td className="num"><Pil kleur={statusPil[h.status] ?? "grijs"}>{statusTekst[h.status] ?? h.status}</Pil>{h.betaaldOp ? <span className="ml-2 text-[14px] text-tekst-3">betaald {datumNl(h.betaaldOp)}</span> : h.ingediendOp ? <span className="ml-2 text-[14px] text-tekst-3">{datumNl(h.ingediendOp)}</span> : null}</td>
+                  <td className="num"><Pil kleur={statusPil[h.status] ?? "grijs"}>{statusTekst[h.status] ?? h.status}</Pil>{h.betaaldOp ? <span className="ml-2 text-[13px] text-tekst-3">betaald {datumNl(h.betaaldOp)}</span> : h.ingediendOp ? <span className="ml-2 text-[13px] text-tekst-3">{datumNl(h.ingediendOp)}</span> : null}</td>
                 </tr>
               ))}
             </tbody>
@@ -158,7 +158,7 @@ export default async function Btw({ searchParams }: { searchParams: Promise<{ j?
         </Kaart>
       )}
 
-      <p className="mt-6 max-w-2xl text-[14px] leading-relaxed text-tekst-3">
+      <p className="mt-6 max-w-2xl text-[13px] leading-relaxed text-tekst-3">
         Berekend uit je bankregels, gekoppelde bonnen en privédeel. Rubriek 4b (buitenlandse software met verlegde btw) staat ook in 5b en is netto nul. Rond af op hele euro's bij het overnemen.
         Je tijdvak is {tijdvak === "maand" ? "een maand" : tijdvak === "jaar" ? "een jaar" : "een kwartaal"}; wijzigen kan bij <Link href="/app/ib" className="underline">Inkomstenbelasting</Link>. {MERK} dient niet zelf in.
       </p>

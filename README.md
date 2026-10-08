@@ -59,7 +59,13 @@ npm run dev
 
 Open http://localhost:3000. Zonder SMTP-instellingen komt de inlogcode in `uploads/outbox.log` en in de melding op het scherm (alleen buiten productie).
 
+Demo-gegevens in je lokale database (één onderneming met een jaar aan bankregels, facturen, bonnen en klanten): `npm run demo [e-mailadres]`. Werkt alleen op een database op localhost en wist eerst de gegevens van die onderneming.
+
 Tests: `npx tsx test/parsers.ts`, `test/importeer.ts`, `test/facturen.ts`, `test/fiscaal.ts`, `test/exports-db.ts`, `test/d-moduleD.ts`.
+
+## Ontwerp
+
+De app volgt de taal van een modern boekhoud- en betaaldashboard (Moneybird, Stripe): lichte zijbalk met gegroepeerde navigatie, topbalk met zoeken (sneltoets `/`), een knop "Nieuw" voor snelle acties, meldingen en account; lichtgrijs canvas met witte kaarten; één accentkleur (merkgroen); compacte tabellen met kleine kopregels; rechthoekige statuslabels. Alle kleuren en maten staan als tokens in `src/app/globals.css`; de bouwstenen (`Kop`, `Kaart`, `Tegel`, `Pil`, knoppen, chips) in `src/components/ui.tsx`. De schil (zijbalk en topbalk) staat in `src/components/Schil.tsx`, de zoekpagina op `/app/zoeken`.
 
 ## Stack
 

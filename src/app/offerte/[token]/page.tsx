@@ -57,11 +57,11 @@ export default async function PubliekeOfferte({ params, searchParams }: { params
           <p className="mt-8 text-sm text-tekst-2">Deze offerte is verlopen. Vraag {x.onderneming.email ?? x.onderneming.naam} om een nieuwe.</p>
         ) : (
           <form action={besluit} className="mt-8 flex flex-wrap gap-3">
-            <button name="keuze" value="ja" className="knop knop-groen px-7 py-3 text-[15px]">Offerte accepteren</button>
-            <button name="keuze" value="nee" className="knop-licht px-7 py-3 text-[15px]">Afwijzen</button>
+            <button name="keuze" value="ja" className="knop knop-groen px-7 py-3 text-sm">Offerte accepteren</button>
+            <button name="keuze" value="nee" className="knop-licht px-7 py-3 text-sm">Afwijzen</button>
           </form>
         )}
-        <p className="mt-8 text-[14px] text-tekst-3">Door te accepteren ga je akkoord met de offerte zoals hierboven staat. Je ontvangt daarna een factuur van {x.onderneming.naam}.</p>
+        <p className="mt-8 text-[13px] text-tekst-3">Door te accepteren ga je akkoord met de offerte zoals hierboven staat. Je ontvangt daarna een factuur van {x.onderneming.naam}.</p>
       </article>
     </main>
   );

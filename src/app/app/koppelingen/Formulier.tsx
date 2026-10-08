@@ -26,11 +26,11 @@ export function ResultaatFormulier({
         <div key={v.naam}>
           <label className="lbl" htmlFor={`veld-${v.naam}`}>{v.label}</label>
           {v.type === "textarea" ? (
-            <textarea id={`veld-${v.naam}`} name={v.naam} rows={4} className={`${veld} font-mono text-[14px]`} />
+            <textarea id={`veld-${v.naam}`} name={v.naam} rows={4} className={`${veld} font-mono text-[13px]`} />
           ) : (
             <input id={`veld-${v.naam}`} name={v.naam} type={v.type ?? "text"} autoComplete="off" className={veld} />
           )}
-          {v.hint && <p className="mt-1 text-[14px] text-tekst-3">{v.hint}</p>}
+          {v.hint && <p className="mt-1 text-[13px] text-tekst-3">{v.hint}</p>}
         </div>
       ))}
       {children}
