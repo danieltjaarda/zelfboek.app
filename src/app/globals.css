@@ -198,21 +198,17 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 .menu-lijst a:hover, .menu-lijst button:hover { background: var(--papier); }
 .menu-lijst hr { border: 0; border-top: 1px solid var(--lijn); margin: 6px 0; }
 
-/* Vraagbalk voor de bot: gradientrand met een zachte, ademende gloed eromheen. */
-.ai-balk { position: relative; margin: 4px 0 28px; border-radius: 16px; }
-.ai-balk::before {
-  content: ""; position: absolute; inset: -6px; border-radius: 22px; z-index: 0;
-  background: linear-gradient(120deg, #1db1df, #8fdcf3 50%, #1db1df);
-  background-size: 200% 200%; filter: blur(18px); opacity: .35;
-  animation: ai-gloed 9s ease-in-out infinite;
-}
-.ai-balk:focus-within::before { opacity: .6; }
+/* Vraagbalk voor de bot: wit vakje met een blauwe rand en een zachte halo eromheen. Nooit een gevuld, oplichtend vlak. */
+.ai-balk { position: relative; margin: 4px 0 28px; }
 .ai-balk-binnen {
-  position: relative; z-index: 1; border-radius: 16px; border: 1px solid transparent;
-  background: linear-gradient(var(--wit), var(--wit)) padding-box, linear-gradient(120deg, #1db1df, #8fdcf3, #1db1df) border-box;
-  box-shadow: 0 10px 30px -12px rgba(29, 177, 223, .4);
+  border-radius: 16px; background: var(--wit); border: 1px solid rgba(29, 177, 223, 0.65);
+  box-shadow: 0 0 0 3px rgba(29, 177, 223, 0.10), 0 0 14px rgba(29, 177, 223, 0.30), 0 0 36px rgba(29, 177, 223, 0.22), 0 0 70px rgba(29, 177, 223, 0.14);
+  transition: box-shadow .25s, border-color .25s;
 }
-@keyframes ai-gloed { 0%, 100% { background-position: 0% 50%; opacity: .32; } 50% { background-position: 100% 50%; opacity: .5; } }
+.ai-balk:focus-within .ai-balk-binnen {
+  border-color: var(--primair);
+  box-shadow: 0 0 0 3px rgba(29, 177, 223, 0.14), 0 0 16px rgba(29, 177, 223, 0.40), 0 0 44px rgba(29, 177, 223, 0.28), 0 0 90px rgba(29, 177, 223, 0.18);
+}
 
 /* Ronde iconknop in de topbalk. */
 .iconknop {
