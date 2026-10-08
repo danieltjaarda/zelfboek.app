@@ -36,12 +36,16 @@ export async function verstuurMail(opties: {
     });
     return { verzonden: true, via: "smtp" };
   }
-  const map = path.join(process.cwd(), "uploads");
-  await mkdir(map, { recursive: true });
-  await appendFile(
-    path.join(map, "outbox.log"),
-    `\n=== ${new Date().toISOString()} aan ${opties.aan}\nOnderwerp: ${opties.onderwerp}\n${opties.tekst}\nBijlagen: ${(opties.bijlagen ?? []).map((b) => b.filename).join(", ") || "geen"}\n`,
-  );
+  try {
+    const map = path.join(process.cwd(), "uploads");
+    await mkdir(map, { recursive: true });
+    await appendFile(path.join(map, "outbox.log"), `
+--- ${new Date().toISOString()} aan ${opties.aan} | ${opties.onderwerp}
+${opties.tekst}
+`);
+  } catch {
+    // Alleen-lezen bestandssysteem (bijv. Vercel): niets te doen, de melding zegt al dat SMTP ontbreekt.
+  }
   return { verzonden: false, via: "outbox.log (geen SMTP ingesteld)" };
 }
 
