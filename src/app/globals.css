@@ -22,10 +22,10 @@
   --primair-actief: #148aae;
   --primair-licht: #e4f5fb;
   --primair-tekst: #0c7f9f;
-  --groen: #1e6b47;
-  --groen-licht: #e6f4ec;
-  --groen-fel: #2f9e6a;
-  --groen-tekst: #0e6245;
+  --groen: #2b8273;
+  --groen-licht: #e3f3ef;
+  --groen-fel: #3aa08f;
+  --groen-tekst: #1f6a5d;
   --mosterd: #d97706;
   --mosterd-licht: #fdf2d8;
   --mosterd-tekst: #7a4b00;
@@ -161,12 +161,12 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 .chip:hover { color: var(--tekst); box-shadow: var(--ring-grijs-hover), 0 1px 1px rgba(0, 0, 0, 0.08); }
 .chip-actief, .chip-actief:hover { background: var(--primair-licht); color: var(--primair-tekst); box-shadow: 0 0 0 1px rgba(29, 177, 223, 0.6); }
 
-/* Status: klein rechthoekig label. */
-.pil { display: inline-flex; align-items: center; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap; }
-.pil-groen { background: #d6f1e1; color: var(--groen-tekst); }
-.pil-geel { background: #fbe9bf; color: var(--mosterd-tekst); }
-.pil-rood { background: var(--rood-licht); color: var(--rood-tekst); }
-.pil-grijs { background: #ebeef1; color: var(--tekst-2); }
+/* Status: gevuld afgerond label met witte tekst, zoals bij Moneybird. */
+.pil { display: inline-flex; align-items: center; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; line-height: 16px; color: #fff; white-space: nowrap; letter-spacing: 0.01em; }
+.pil-groen { background: var(--groen); }
+.pil-geel { background: var(--mosterd); }
+.pil-rood { background: var(--rood); }
+.pil-grijs { background: var(--tekst-3); }
 
 /* Navigatie in de zijbalk: compacte regels, de actieve gevuld in de merkkleur, subitems ingesprongen. */
 .nav-item {
