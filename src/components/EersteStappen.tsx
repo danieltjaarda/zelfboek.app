@@ -15,7 +15,7 @@ export function EersteStappen({ stappen }: { stappen: Stap[] }) {
           <p className="text-[13px] text-tekst-2">Samen ongeveer vijf minuten.</p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="h-1.5 w-32 overflow-hidden rounded-full bg-lijn"><div className="h-full rounded-full bg-groen" style={{ width: `${(klaar / stappen.length) * 100}%` }} /></div>
+          <div className="h-1.5 w-32 overflow-hidden rounded-full bg-lijn"><div className="h-full rounded-full bg-primair" style={{ width: `${(klaar / stappen.length) * 100}%` }} /></div>
           <span className="text-[13px] text-tekst-2">{klaar} van {stappen.length}</span>
         </div>
       </header>

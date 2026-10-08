@@ -17,7 +17,7 @@ export function FormulierMetMelding({ actie, knopTekst, children, className, gev
   return (
     <form action={verstuur} className={className ?? "space-y-4"}>
       {children}
-      <button disabled={bezig} className={gevaarlijk ? "knop bg-rood hover:bg-rood-tekst" : knop}>{bezig ? "Bezig" : knopTekst}</button>
+      <button disabled={bezig} className={gevaarlijk ? "knop-rood" : knop}>{bezig ? "Bezig" : knopTekst}</button>
       <Melding r={staat} />
     </form>
   );

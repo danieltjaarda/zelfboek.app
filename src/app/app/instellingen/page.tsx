@@ -27,7 +27,7 @@ function Veld({ naam, label, waarde, type = "text", hint, breed }: { naam: strin
 function Vinkje({ naam, label, uitleg, aan }: { naam: string; label: string; uitleg: string; aan: boolean }) {
   return (
     <label className="flex items-start gap-3 text-sm">
-      <input type="checkbox" name={naam} defaultChecked={aan} className="mt-1 h-4 w-4 accent-groen" />
+      <input type="checkbox" name={naam} defaultChecked={aan} className="mt-1 h-4 w-4 accent-primair" />
       <span>{label}<span className="block text-[13px] text-tekst-3">{uitleg}</span></span>
     </label>
   );

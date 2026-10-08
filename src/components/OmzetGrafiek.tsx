@@ -31,7 +31,7 @@ export function OmzetGrafiek({ data }: { data: Punt[] }) {
   return (
     <figure>
       <div className="mb-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-tekst-2">
-        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-groen" />Omzet {euro(totaalOmzet)}</span>
+        <span className="flex items-center gap-2"><span className="h-2.5 w-2.5 rounded-sm bg-primair" />Omzet {euro(totaalOmzet)}</span>
         <span className="flex items-center gap-2"><span className="h-[2px] w-3 bg-inkt" />Kosten {euro(totaalKosten)}</span>
       </div>
       <svg viewBox={`0 0 ${B} ${H}`} className="w-full" role="img" aria-label="Omzet en kosten per maand over de laatste twaalf maanden">
@@ -41,12 +41,12 @@ export function OmzetGrafiek({ data }: { data: Punt[] }) {
             <text x={pL - 8} y={y(v) + 3.5} textAnchor="end" fontSize={10} fill="var(--tekst-3)">{kort(v)}</text>
           </g>
         ))}
-        <path d={vlak} fill="var(--groen)" fillOpacity={0.14} />
-        <path d={pad("omzet")} fill="none" stroke="var(--groen)" strokeWidth={2} strokeLinejoin="round" />
+        <path d={vlak} fill="var(--primair)" fillOpacity={0.14} />
+        <path d={pad("omzet")} fill="none" stroke="var(--primair)" strokeWidth={2} strokeLinejoin="round" />
         <path d={pad("kosten")} fill="none" stroke="var(--inkt)" strokeWidth={1.5} strokeLinejoin="round" strokeDasharray="3 3" />
         {data.map((d, i) => (
           <g key={i}>
-            <circle cx={x(i)} cy={y(d.omzet)} r={3} fill="var(--wit)" stroke="var(--groen)" strokeWidth={2}>
+            <circle cx={x(i)} cy={y(d.omzet)} r={3} fill="var(--wit)" stroke="var(--primair)" strokeWidth={2}>
               <title>{`${d.label}: omzet ${euro(d.omzet)}, kosten ${euro(d.kosten)}`}</title>
             </circle>
             <text x={x(i)} y={H - 6} textAnchor="middle" fontSize={10} fill="var(--tekst-3)">{d.label}</text>

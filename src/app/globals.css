@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 /*
-  Ontwerptaal van de app: wit voor vlakken, lichtgrijs canvas, koele grijzen voor tekst en lijnen,
-  één accentkleur (merkgroen). Compact en rustig, zoals het dashboard van Stripe en Moneybird.
-  De tokennamen zijn gelijk gebleven zodat elke pagina automatisch meegaat.
+  Ontwerptaal van de app, naar het dashboard van Stripe en Moneybird: wit voor vlakken, lichtgrijs canvas,
+  koele grijzen voor tekst en lijnen, één merkkleur voor acties (--primair), groen alleen voor "positief" en "gelukt".
+  Wil je de acties in een andere kleur? Verander dan alleen de vijf --primair-tokens.
 */
 :root {
   color-scheme: light;
@@ -17,6 +17,11 @@
   --tekst: #1a1f36;
   --tekst-2: #4f566b;
   --tekst-3: #8792a2;
+  --primair: #635bff;
+  --primair-hover: #5851df;
+  --primair-actief: #4b44c9;
+  --primair-licht: #efeeff;
+  --primair-tekst: #533afd;
   --groen: #1e6b47;
   --groen-licht: #e6f4ec;
   --groen-fel: #2f9e6a;
@@ -30,9 +35,12 @@
   --radius: 8px;
   --radius-s: 6px;
   --schaduw: 0 1px 2px rgba(26, 31, 54, 0.05);
-  --schaduw-knop: 0 1px 1px rgba(26, 31, 54, 0.08);
   --schaduw-menu: 0 4px 16px -4px rgba(26, 31, 54, 0.18), 0 0 0 1px rgba(26, 31, 54, 0.06);
-  --ring: 0 0 0 3px rgba(30, 107, 71, 0.18);
+  /* Stripe-anatomie: ring van 1px plus twee zachte schaduwen. */
+  --ring-grijs: 0 0 0 1px rgba(60, 66, 87, 0.16);
+  --ring-grijs-hover: 0 0 0 1px rgba(60, 66, 87, 0.28);
+  --knop-schaduw: 0 1px 1px rgba(0, 0, 0, 0.12), 0 2px 5px rgba(60, 66, 87, 0.08);
+  --ring: 0 0 0 4px rgba(99, 91, 255, 0.28);
 }
 
 @theme inline {
@@ -45,6 +53,10 @@
   --color-tekst: var(--tekst);
   --color-tekst-2: var(--tekst-2);
   --color-tekst-3: var(--tekst-3);
+  --color-primair: var(--primair);
+  --color-primair-hover: var(--primair-hover);
+  --color-primair-licht: var(--primair-licht);
+  --color-primair-tekst: var(--primair-tekst);
   --color-groen: var(--groen);
   --color-groen-licht: var(--groen-licht);
   --color-groen-fel: var(--groen-fel);
@@ -101,45 +113,53 @@ h1, h2, h3, .display {
 .tabel tr:last-child td { border-bottom: 0; }
 .tabel td.num, .tabel th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* Formulier */
+/* Velden: geen rand maar een ring van 1px, hoek van 4px, paarse ring bij focus. */
 .veld {
-  width: 100%; background: var(--wit); border: 1px solid var(--lijn-2); border-radius: var(--radius-s);
-  padding: 8px 10px; font-size: 14px; line-height: 20px; color: var(--tekst);
-  box-shadow: 0 1px 1px rgba(26, 31, 54, 0.04);
-  transition: border-color .12s, box-shadow .12s;
+  width: 100%; background: var(--wit); border: 0; border-radius: 4px;
+  padding: 7px 10px; font-size: 14px; line-height: 20px; color: var(--tekst);
+  box-shadow: var(--ring-grijs), 0 1px 1px rgba(0, 0, 0, 0.03);
+  transition: box-shadow .15s;
 }
 .veld::placeholder { color: var(--tekst-3); }
-.veld:hover { border-color: #c0c8d2; }
-.veld:focus { outline: none; border-color: var(--groen); box-shadow: var(--ring); }
+.veld:hover { box-shadow: var(--ring-grijs-hover), 0 1px 1px rgba(0, 0, 0, 0.03); }
+.veld:focus { outline: none; box-shadow: 0 0 0 1px var(--primair), var(--ring); }
 .veld-klein { padding: 5px 8px; font-size: 13px; line-height: 18px; }
 label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--tekst-2); margin-bottom: 5px; }
 
-/* Knoppen: rechthoekig met zachte hoek, één groene primaire knop, de rest wit. */
-.knop, .knop-licht, .knop-tekst {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; border-radius: var(--radius-s);
-  font-weight: 500; font-size: 14px; line-height: 20px; padding: 7px 12px; border: 1px solid transparent;
-  cursor: pointer; white-space: nowrap; transition: background .12s, border-color .12s, box-shadow .12s;
+/* Knoppen zoals in het Stripe-dashboard: 28px hoog, hoek van 4px, vet label, ring van 1px plus gelaagde schaduw. */
+.knop, .knop-groen, .knop-licht, .knop-tekst, .knop-rood {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 28px; padding: 0 10px; border: 0; border-radius: 4px;
+  font-size: 14px; font-weight: 600; line-height: 20px; white-space: nowrap; cursor: pointer;
+  transition: background-color .15s, box-shadow .15s, color .15s;
 }
-.knop { background: var(--groen); color: #fff; box-shadow: var(--schaduw-knop); }
-.knop:hover { background: var(--groen-tekst); }
-.knop-groen { background: var(--groen); color: #fff; }
-.knop-groen:hover { background: var(--groen-tekst); }
-.knop-licht { background: var(--wit); color: var(--tekst); border-color: var(--lijn-2); box-shadow: var(--schaduw-knop); }
-.knop-licht:hover { background: #f9fafb; border-color: #c0c8d2; }
-.knop-tekst { padding: 5px 8px; color: var(--tekst-2); }
-.knop-tekst:hover { color: var(--tekst); background: var(--papier); }
-.knop:focus-visible, .knop-licht:focus-visible, .knop-tekst:focus-visible { outline: none; box-shadow: var(--ring); }
-.knop:disabled, .knop-licht:disabled { opacity: .5; cursor: default; }
-.knop-klein { padding: 4px 10px; font-size: 13px; line-height: 18px; }
+.knop, .knop-groen { background: var(--primair); color: #fff; box-shadow: 0 0 0 1px var(--primair), var(--knop-schaduw); }
+.knop:hover, .knop-groen:hover { background: var(--primair-hover); box-shadow: 0 0 0 1px var(--primair-hover), var(--knop-schaduw); }
+.knop:active, .knop-groen:active { background: var(--primair-actief); box-shadow: 0 0 0 1px var(--primair-actief), inset 0 1px 2px rgba(0, 0, 0, 0.2); }
+.knop-licht { background: var(--wit); color: var(--tekst); box-shadow: var(--ring-grijs), var(--knop-schaduw); }
+.knop-licht:hover { background: #f7f8fa; box-shadow: var(--ring-grijs-hover), var(--knop-schaduw); }
+.knop-licht:active { background: #eef0f3; box-shadow: var(--ring-grijs-hover), inset 0 1px 2px rgba(0, 0, 0, 0.08); }
+.knop-rood { background: var(--rood); color: #fff; box-shadow: 0 0 0 1px var(--rood), var(--knop-schaduw); }
+.knop-rood:hover { background: var(--rood-tekst); box-shadow: 0 0 0 1px var(--rood-tekst), var(--knop-schaduw); }
+.knop-tekst { background: transparent; color: var(--primair-tekst); padding: 0 6px; }
+.knop-tekst:hover { background: var(--primair-licht); }
+.knop:focus-visible, .knop-groen:focus-visible, .knop-licht:focus-visible, .knop-tekst:focus-visible, .knop-rood:focus-visible {
+  outline: none; box-shadow: 0 0 0 1px var(--primair), var(--ring);
+}
+.knop:disabled, .knop-groen:disabled, .knop-licht:disabled, .knop-rood:disabled { opacity: .5; cursor: default; pointer-events: none; }
+.knop-klein { height: 24px; padding: 0 8px; font-size: 13px; line-height: 18px; }
+.knop-groot { height: 36px; padding: 0 16px; font-size: 15px; }
 
-/* Filterchips: ronde keuzeknoppen boven een lijst. De actieve is donker. */
+/* Filterchips: ronde keuzeknoppen boven een lijst, dezelfde ring en schaduw. De actieve is paars getint. */
 .chip {
-  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 4px 12px;
+  display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px; border: 0; border-radius: 999px;
   font-size: 13px; font-weight: 500; line-height: 18px; color: var(--tekst-2);
-  background: var(--wit); border: 1px solid var(--lijn-2); cursor: pointer; white-space: nowrap;
+  background: var(--wit); cursor: pointer; white-space: nowrap;
+  box-shadow: var(--ring-grijs), 0 1px 1px rgba(0, 0, 0, 0.08);
+  transition: background-color .15s, box-shadow .15s, color .15s;
 }
-.chip:hover { border-color: #c0c8d2; color: var(--tekst); }
-.chip-actief, .chip-actief:hover { background: var(--inkt); border-color: var(--inkt); color: #fff; }
+.chip:hover { color: var(--tekst); box-shadow: var(--ring-grijs-hover), 0 1px 1px rgba(0, 0, 0, 0.08); }
+.chip-actief, .chip-actief:hover { background: var(--primair-licht); color: var(--primair-tekst); box-shadow: 0 0 0 1px rgba(99, 91, 255, 0.45); }
 
 /* Status: klein rechthoekig label. */
 .pil { display: inline-flex; align-items: center; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap; }
@@ -154,10 +174,10 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
   font-size: 14px; font-weight: 500; color: var(--tekst-2); white-space: nowrap;
 }
 .nav-item:hover { background: var(--papier); color: var(--tekst); }
-.nav-item-actief, .nav-item-actief:hover { background: var(--groen-licht); color: var(--groen-tekst); }
+.nav-item-actief, .nav-item-actief:hover { background: var(--primair-licht); color: var(--primair-tekst); }
 .nav-item svg { color: var(--tekst-3); }
 .nav-item:hover svg { color: var(--tekst-2); }
-.nav-item-actief svg, .nav-item-actief:hover svg { color: var(--groen); }
+.nav-item-actief svg, .nav-item-actief:hover svg { color: var(--primair); }
 
 /* Uitklapmenu in de topbalk, op basis van <details>. */
 .menu > summary { list-style: none; cursor: pointer; }
@@ -181,7 +201,7 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 .iconknop:hover { background: var(--papier); color: var(--tekst); }
 }
 
-:focus-visible { outline: 2px solid var(--groen); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--primair); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 

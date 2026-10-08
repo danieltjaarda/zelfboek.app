@@ -29,7 +29,7 @@ export default async function Importeren() {
               {heeft("moneybird") ? (
                 <ResultaatFormulier actie={importeerVanPakket} verborgen={{ pakket: "moneybird" }} knopTekst="Importeren uit Moneybird" bezigTekst="Ophalen en boeken" />
               ) : (
-                <p className="text-sm">Koppel eerst je Moneybird-token bij <Link href="/app/koppelingen" className="text-groen underline">Koppelingen</Link>.</p>
+                <p className="text-sm">Koppel eerst je Moneybird-token bij <Link href="/app/koppelingen" className="text-primair-tekst underline">Koppelingen</Link>.</p>
               )}
             </div>
           </div>
@@ -42,7 +42,7 @@ export default async function Importeren() {
               {heeft("eboekhouden") ? (
                 <ResultaatFormulier actie={importeerVanPakket} verborgen={{ pakket: "eboekhouden" }} knopTekst="Importeren uit e-Boekhouden" bezigTekst="Ophalen en boeken" />
               ) : (
-                <p className="text-sm">Koppel eerst je e-Boekhouden-token bij <Link href="/app/koppelingen" className="text-groen underline">Koppelingen</Link>.</p>
+                <p className="text-sm">Koppel eerst je e-Boekhouden-token bij <Link href="/app/koppelingen" className="text-primair-tekst underline">Koppelingen</Link>.</p>
               )}
             </div>
           </div>
@@ -62,7 +62,7 @@ export default async function Importeren() {
         <Kaart titel="Excel of een ander pakket">
           <div className="p-5">
             <p className="text-sm text-tekst-2">
-              Vul <a href="/app/importeren/sjabloon" className="text-groen underline">het Excel-sjabloon</a> in: datum, omschrijving, tegenpartij, bedrag, categorie en btw. Laat je de categorie leeg, dan boekt de bot de regel.
+              Vul <a href="/app/importeren/sjabloon" className="text-primair-tekst underline">het Excel-sjabloon</a> in: datum, omschrijving, tegenpartij, bedrag, categorie en btw. Laat je de categorie leeg, dan boekt de bot de regel.
             </p>
             <div className="mt-4">
               <ResultaatFormulier actie={importeerVanPakket} verborgen={{ pakket: "excel" }} knopTekst="Excel importeren" bezigTekst="Inlezen">
@@ -85,7 +85,7 @@ export default async function Importeren() {
 
         <Kaart titel="Oude bankjaren">
           <div className="p-5">
-            <p className="text-sm text-tekst-2">Download bij je bank per jaar een export (CSV, MT940 of CAMT.053) en upload die bij <Link href="/app/bank" className="text-groen underline">Bank</Link>, één voor één.</p>
+            <p className="text-sm text-tekst-2">Download bij je bank per jaar een export (CSV, MT940 of CAMT.053) en upload die bij <Link href="/app/bank" className="text-primair-tekst underline">Bank</Link>, één voor één.</p>
           </div>
         </Kaart>
       </div>

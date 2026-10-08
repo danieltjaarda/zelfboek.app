@@ -87,7 +87,7 @@ export default async function Bank({ searchParams }: { searchParams: Promise<Zoe
         bezigTekst="De bot boekt de regels"
       />
       <p className="mt-2 text-sm text-tekst-2">
-        Liever niets uploaden? <Link href="/app/koppelingen" className="text-groen underline">Koppel je bank</Link>, dan halen we elke nacht de nieuwe regels op.
+        Liever niets uploaden? <Link href="/app/koppelingen" className="text-primair-tekst underline">Koppel je bank</Link>, dan halen we elke nacht de nieuwe regels op.
       </p>
 
       <div className="mt-8 flex flex-wrap items-center gap-2">

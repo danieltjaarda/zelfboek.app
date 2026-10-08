@@ -153,7 +153,7 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, uitl
 
           <div className="ml-auto flex items-center gap-1.5">
             <details className="menu relative">
-              <summary className="knop knop-klein">
+              <summary className="knop">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
                 Nieuw
               </summary>
@@ -168,7 +168,7 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, uitl
             </Link>
 
             <details className="menu relative">
-              <summary className="flex h-8 w-8 items-center justify-center rounded-full bg-groen-licht text-[12px] font-semibold text-groen-tekst" aria-label="Account">{initialen}</summary>
+              <summary className="flex h-8 w-8 items-center justify-center rounded-full bg-primair-licht text-[12px] font-semibold text-primair-tekst" aria-label="Account">{initialen}</summary>
               <div className="menu-lijst">
                 <p className="truncate px-2.5 py-1.5 text-[13px] text-tekst-2" title={email}>{email}</p>
                 <hr />

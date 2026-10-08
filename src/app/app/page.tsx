@@ -125,7 +125,7 @@ export default async function Overzicht() {
             ))}
           </ul>
         )}
-        <p className="border-t border-lijn bg-papier px-5 py-2.5 text-[13px] text-tekst-2">{btwZin} <Link href="/app/btw" className="font-medium text-groen-tekst hover:underline">Naar de aangifte</Link></p>
+        <p className="border-t border-lijn bg-papier px-5 py-2.5 text-[13px] text-tekst-2">{btwZin} <Link href="/app/btw" className="font-medium text-primair-tekst hover:underline">Naar de aangifte</Link></p>
       </Kaart>
 
       <Cijferband>
@@ -146,7 +146,7 @@ export default async function Overzicht() {
 
         <Kaart titel="Openstaande facturen" actie={<Link href="/app/facturen" className="knop-tekst knop-klein">Alle facturen</Link>}>
           {openFacturen.length === 0 ? (
-            <p className="px-5 py-8 text-center text-sm text-tekst-2">Niets open. <Link href="/app/facturen/nieuw" className="text-groen-tekst underline">Nieuwe factuur</Link></p>
+            <p className="px-5 py-8 text-center text-sm text-tekst-2">Niets open. <Link href="/app/facturen/nieuw" className="text-primair-tekst underline">Nieuwe factuur</Link></p>
           ) : (
             <ul className="divide-y divide-lijn">
               {openFacturen.slice(0, 6).map((f) => {

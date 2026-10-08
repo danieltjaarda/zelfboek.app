@@ -41,7 +41,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
                   <label className="lbl" htmlFor="email">E-mailadres</label>
                   <input id="email" name="email" type="email" autoComplete="email" required placeholder="jij@bedrijf.nl" autoFocus className={veld} />
                 </div>
-                <button className={`${knop} w-full justify-center`}>Stuur mij een code</button>
+                <button className={`${knop} knop-groot w-full`}>Stuur mij een code</button>
               </form>
             </>
           ) : (
@@ -56,7 +56,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
                   <label className="lbl" htmlFor="code">Code uit de e-mail</label>
                   <input id="code" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required placeholder="000000" autoFocus className={`${veld} cijfer text-center text-[26px] tracking-[0.4em]`} />
                 </div>
-                <button className={`${knop} w-full justify-center`}>Inloggen</button>
+                <button className={`${knop} knop-groot w-full`}>Inloggen</button>
                 <Link href="/login" className={`${knopTekst} w-full justify-center`}>Ander e-mailadres</Link>
               </form>
             </>

@@ -14,7 +14,7 @@ export function Kop({ titel, sub, children }: { titel: string; sub?: string; chi
 }
 
 /** Kleine lijngrafiek zonder assen, voor in een cijferkaart. */
-export function Sparkline({ reeks, kleur = "var(--groen)" }: { reeks: number[]; kleur?: string }) {
+export function Sparkline({ reeks, kleur = "var(--primair)" }: { reeks: number[]; kleur?: string }) {
   const B = 120, H = 32, p = 2;
   const max = Math.max(1, ...reeks);
   const x = (i: number) => p + (i * (B - 2 * p)) / Math.max(1, reeks.length - 1);

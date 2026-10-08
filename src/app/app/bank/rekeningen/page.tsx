@@ -44,7 +44,7 @@ export default async function Rekeningen() {
                   <><dt className="text-tekst-2">Toestemming bank</dt><dd className={r.psd2Verloopt < nu ? "text-rood-tekst" : ""}>{r.psd2Verloopt < nu ? "verlopen, koppel opnieuw" : `geldig tot ${datumNl(r.psd2Verloopt)}`}</dd></>
                 )}
               </dl>
-              <Link href={`/app/bank?rekening=${r.id}`} className="mt-4 inline-block text-sm text-groen underline">Bekijk de regels</Link>
+              <Link href={`/app/bank?rekening=${r.id}`} className="mt-4 inline-block text-sm text-primair-tekst underline">Bekijk de regels</Link>
             </section>
           ))}
         </div>

@@ -78,7 +78,7 @@ export default async function OfferteDetail({ params }: { params: Promise<{ id: 
           <Kaart titel="Link voor de klant">
             <div className="px-5 py-4 text-sm">
               <p className="text-tekst-2">Hiermee accepteert of weigert de klant online, zonder in te loggen.</p>
-              <a href={link} target="_blank" className="mt-2 block break-all text-groen-tekst underline">{link}</a>
+              <a href={link} target="_blank" className="mt-2 block break-all text-primair-tekst underline">{link}</a>
             </div>
           </Kaart>
         </aside>
