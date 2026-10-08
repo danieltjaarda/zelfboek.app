@@ -17,11 +17,11 @@
   --tekst: #1a1f36;
   --tekst-2: #4f566b;
   --tekst-3: #8792a2;
-  --primair: #635bff;
-  --primair-hover: #5851df;
-  --primair-actief: #4b44c9;
-  --primair-licht: #efeeff;
-  --primair-tekst: #533afd;
+  --primair: #1db1df;
+  --primair-hover: #189ec7;
+  --primair-actief: #148aae;
+  --primair-licht: #e4f5fb;
+  --primair-tekst: #0c7f9f;
   --groen: #1e6b47;
   --groen-licht: #e6f4ec;
   --groen-fel: #2f9e6a;
@@ -40,7 +40,7 @@
   --ring-grijs: 0 0 0 1px rgba(60, 66, 87, 0.16);
   --ring-grijs-hover: 0 0 0 1px rgba(60, 66, 87, 0.28);
   --knop-schaduw: 0 1px 1px rgba(0, 0, 0, 0.12), 0 2px 5px rgba(60, 66, 87, 0.08);
-  --ring: 0 0 0 4px rgba(99, 91, 255, 0.28);
+  --ring: 0 0 0 4px rgba(29, 177, 223, 0.3);
 }
 
 @theme inline {
@@ -159,7 +159,7 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
   transition: background-color .15s, box-shadow .15s, color .15s;
 }
 .chip:hover { color: var(--tekst); box-shadow: var(--ring-grijs-hover), 0 1px 1px rgba(0, 0, 0, 0.08); }
-.chip-actief, .chip-actief:hover { background: var(--primair-licht); color: var(--primair-tekst); box-shadow: 0 0 0 1px rgba(99, 91, 255, 0.45); }
+.chip-actief, .chip-actief:hover { background: var(--primair-licht); color: var(--primair-tekst); box-shadow: 0 0 0 1px rgba(29, 177, 223, 0.6); }
 
 /* Status: klein rechthoekig label. */
 .pil { display: inline-flex; align-items: center; border-radius: 4px; padding: 1px 6px; font-size: 12px; font-weight: 600; line-height: 18px; white-space: nowrap; }
@@ -202,15 +202,15 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 .ai-balk { position: relative; margin: 4px 0 28px; border-radius: 16px; }
 .ai-balk::before {
   content: ""; position: absolute; inset: -6px; border-radius: 22px; z-index: 0;
-  background: linear-gradient(120deg, #635bff, #22d3ee 45%, #f472b6 80%, #635bff);
+  background: linear-gradient(120deg, #1db1df, #8fdcf3 50%, #1db1df);
   background-size: 200% 200%; filter: blur(18px); opacity: .35;
   animation: ai-gloed 9s ease-in-out infinite;
 }
 .ai-balk:focus-within::before { opacity: .6; }
 .ai-balk-binnen {
   position: relative; z-index: 1; border-radius: 16px; border: 1px solid transparent;
-  background: linear-gradient(var(--wit), var(--wit)) padding-box, linear-gradient(120deg, #635bff, #22d3ee, #f472b6) border-box;
-  box-shadow: 0 10px 30px -12px rgba(99, 91, 255, .35);
+  background: linear-gradient(var(--wit), var(--wit)) padding-box, linear-gradient(120deg, #1db1df, #8fdcf3, #1db1df) border-box;
+  box-shadow: 0 10px 30px -12px rgba(29, 177, 223, .4);
 }
 @keyframes ai-gloed { 0%, 100% { background-position: 0% 50%; opacity: .32; } 50% { background-position: 100% 50%; opacity: .5; } }
 
