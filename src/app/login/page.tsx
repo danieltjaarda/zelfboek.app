@@ -23,7 +23,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
     const email = String(fd.get("email") ?? "");
     const r = await logInMetCode(email, String(fd.get("code") ?? ""));
     if (!r.ok) redirect(`/login?email=${encodeURIComponent(email)}&fout=${encodeURIComponent(r.melding)}`);
-    redirect("/app");
+    redirect(r.nieuw ? "/welkom" : "/app");
   }
 
   return (

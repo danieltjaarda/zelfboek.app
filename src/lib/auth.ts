@@ -29,7 +29,7 @@ export async function stuurLoginCode(email: string): Promise<{ ok: boolean; meld
 }
 
 /** Stap 2: code controleren en sessie aanmaken. */
-export async function logInMetCode(email: string, code: string): Promise<{ ok: boolean; melding: string }> {
+export async function logInMetCode(email: string, code: string): Promise<{ ok: boolean; melding: string; nieuw?: boolean }> {
   const e = email.trim().toLowerCase();
   const gebruiker = await db.gebruiker.findUnique({ where: { email: e } });
   if (!gebruiker) return { ok: false, melding: "Onbekend e-mailadres." };
@@ -49,10 +49,11 @@ export async function logInMetCode(email: string, code: string): Promise<{ ok: b
       actieveOndernemingId: lid?.ondernemingId ?? null,
     },
   });
+  const nieuw = !gebruiker.laatstActief; // eerste keer ingelogd: welkomstanimatie
   await db.gebruiker.update({ where: { id: gebruiker.id }, data: { laatstActief: new Date() } });
   const jar = await cookies();
   jar.set(COOKIE, token, { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: SESSIE_DAGEN * 86400 });
-  return { ok: true, melding: "Ingelogd." };
+  return { ok: true, melding: "Ingelogd.", nieuw };
 }
 
 export async function logUit() {
