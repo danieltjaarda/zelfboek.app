@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { MERK, PRIJS } from "@/lib/merk";
-import { Logo, Woordmerk, type LogoId } from "@/components/Merk";
+import { Logo, type LogoId } from "@/components/Merk";
 import { Voettekst } from "@/components/Voettekst";
 
 export const instant = false;
@@ -10,113 +10,35 @@ const banken: LogoId[] = ["ing", "rabobank", "abnamro", "bunq", "knab", "sns", "
 const kanalen: LogoId[] = ["mollie", "stripe", "shopify", "bol", "woocommerce", "paypal"];
 const pakketten: LogoId[] = ["moneybird", "eboekhouden", "jortt"];
 
-/**
- * Het bonnetje: wat de bot vannacht deed, uitgedraaid als kassabon.
- * Dit is het ene beeld van de pagina. De rest is kasboekpapier.
- */
-function Bonnetje() {
-  const regels: [string, string, string?][] = [
-    ["ING gelezen", "14 regels"],
-    ["Geboekt met btw-code", "13"],
-    ["Bon Coolblue gekoppeld", "249,00"],
-    ["Mollie-uitbetalingen", "3"],
-    ["Herinnering factuur 2026-0031", "1"],
-    ["Btw 4e kwartaal bijgewerkt", "707,67"],
-    ["Zakelijk of privé: Café Het Hoekje", "42,50", "vraag"],
-  ];
+function Pijl({ className = "" }: { className?: string }) {
   return (
-    <div className="bon" role="figure" aria-label="Bonnetje van wat de bot vannacht deed">
-      <div className="bon-kop">
-        <p className="display text-[20px] font-semibold">{MERK}</p>
-        <p className="text-[13px] text-tekst-2">Nachtdienst, 7 oktober, 02:00 tot 02:03</p>
-      </div>
-      <ul className="bon-regels">
-        {regels.map(([l, r, s], i) => (
-          <li key={l} className="bon-regel" style={{ animationDelay: `${0.4 + i * 0.35}s` }}>
-            <span className={s === "vraag" ? "font-medium text-mosterd-tekst" : ""}>{l}</span>
-            <span className="bon-leader" aria-hidden />
-            <span className="tabular">{r}</span>
-          </li>
-        ))}
-      </ul>
-      <div className="bon-totaal bon-regel" style={{ animationDelay: "3s" }}>
-        <span>Jouw werk vandaag</span>
-        <span className="bon-leader" aria-hidden />
-        <span className="tabular">1 tik</span>
-      </div>
-      <div className="bon-regel mt-4 flex flex-wrap gap-2" style={{ animationDelay: "3.3s" }}>
-        <span className="knop knop-klein bg-mosterd text-inkt">Zakelijk, lunch met klant</span>
-        <span className="knop-licht knop-klein">Privé</span>
-      </div>
-      <p className="bon-regel mt-4 text-center text-[12px] text-tekst-3" style={{ animationDelay: "3.6s" }}>Bedankt. Tot vannacht.</p>
-    </div>
+    <svg width="16" height="16" viewBox="0 0 16 16" className={className} aria-hidden>
+      <path d="M3 8h9M8.5 4.5L12 8l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function Vink({ fel = false }: { fel?: boolean }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" className={`mt-[3px] shrink-0 ${fel ? "text-groen-fel" : "text-groen"}`} aria-hidden>
+      <path d="M4 9.5l3 3 7-7" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+function Eyebrow({ children, licht = false }: { children: React.ReactNode; licht?: boolean }) {
+  return (
+    <p className={`eyebrow ${licht ? "text-groen-fel" : "text-groen"}`}>
+      <span className="eyebrow-stip" />{children}
+    </p>
   );
 }
 
-/* Kleine, echte schermen per moment van de dag. */
-function MockBank() {
-  const rijen = [["Vercel Inc", "-24,20", "Software, btw verlegd"], ["NS Reizigers", "-34,80", "Reiskosten, 9%"], ["Klant BV", "+1.210,00", "Omzet, 21%"]];
-  return (
-    <div className="mini">
-      {rijen.map(([n, b, c]) => (
-        <div key={n} className="mini-rij">
-          <span className="w-28 truncate font-medium">{n}</span>
-          <span className="tabular w-20 text-right">{b}</span>
-          <span className="flex-1 truncate text-tekst-2">{c}</span>
-          <span className="text-groen-tekst">geboekt</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-function MockBon() {
-  return (
-    <div className="mini">
-      <div className="mini-rij"><span className="flex-1">Foto van de bon, Coolblue</span><span className="tabular">249,00</span></div>
-      <div className="mini-rij"><span className="flex-1">Bankregel Coolblue B.V., 16-09, ING</span><span className="tabular">-249,00</span></div>
-      <div className="mini-rij"><span className="flex-1 text-tekst-2">Gekoppeld. Categorie apparatuur, btw 21% teruggevraagd.</span></div>
-    </div>
-  );
-}
-function MockFactuur() {
-  const stappen = [["Dag 0", "Factuur verstuurd met iDEAL-link"], ["Dag 7", "Vriendelijke herinnering"], ["Dag 21", "Tweede herinnering"], ["Dag 35", "Aanmaning met wettelijke kosten"]];
-  return (
-    <div className="mini">
-      {stappen.map(([d, t]) => (
-        <div key={d} className="mini-rij"><span className="w-14 text-tekst-3">{d}</span><span>{t}</span></div>
-      ))}
-    </div>
-  );
-}
-function MockBtw() {
-  const r = [["1a", "Omzet hoog tarief", "735"], ["4b", "Diensten uit de EU", "50"], ["5b", "Voorbelasting", "78"]];
-  return (
-    <div className="mini">
-      {r.map(([c, n, b]) => (
-        <div key={c} className="mini-rij"><span className="w-7 text-tekst-3">{c}</span><span className="flex-1">{n}</span><span className="tabular">{b}</span></div>
-      ))}
-      <div className="mini-rij font-semibold"><span className="w-7 text-tekst-3">5c</span><span className="flex-1">Te betalen</span><span className="tabular">707,67</span></div>
-    </div>
-  );
-}
-function MockBot() {
-  return (
-    <div className="space-y-2 text-[14px]">
-      <p className="ml-auto w-fit rounded-xl bg-inkt px-3 py-2 text-white">Wat was mijn grootste kostenpost in september?</p>
-      <p className="w-fit max-w-[85%] rounded-xl bg-white px-3 py-2 ring-1 ring-lijn">Software: € 240,34, vooral Adobe en Vercel. Daarna reiskosten, € 104,40.</p>
-    </div>
-  );
-}
-
-/** Een etmaal met Zelfboek. De tijden zijn echt een volgorde, daarom staan ze erbij. */
-const dag: { tijd: string; wie: "bot" | "jij"; kop: string; tekst: string; mock?: React.ReactNode }[] = [
-  { tijd: "02:00", wie: "bot", kop: "Je bankregels worden geboekt", tekst: "De bot leest je nieuwe regels, kiest categorie en btw-code en schrijft in één zin waarom. Twijfelt hij, dan bewaart hij de vraag voor jou.", mock: <MockBank /> },
-  { tijd: "02:01", wie: "bot", kop: "Bonnen worden aan bankregels gehangen", tekst: "Die foto die je gisteren maakte: leverancier, bedrag en btw zijn uitgelezen en de bon zit aan de juiste bankregel.", mock: <MockBon /> },
-  { tijd: "02:02", wie: "bot", kop: "Te late facturen krijgen een herinnering", tekst: "Factuur 2026-0031 is zeven dagen over tijd. De herinnering is weg, vriendelijk, met de iDEAL-link erbij.", mock: <MockFactuur /> },
-  { tijd: "07:30", wie: "jij", kop: "Jij opent de app bij de koffie", tekst: "Bovenaan staat of je iets moet doen. Vandaag één vraag: zakelijk of privé. Eén tik, klaar. De bot onthoudt het voor de volgende keer." },
-  { tijd: "12:15", wie: "jij", kop: "Je stuurt een factuur", tekst: "Klant kiezen, regels invullen, versturen. Nummering, btw verleggen bij EU-klanten en de e-factuur gaan vanzelf. De rest van de opvolging ook." },
-  { tijd: "16:40", wie: "jij", kop: "Je stelt een vraag", tekst: "De bot kijkt in je eigen cijfers en antwoordt direct. Iets aanpassen doet hij alleen na jouw ja.", mock: <MockBot /> },
-  { tijd: "31 jan", wie: "bot", kop: "Je btw-aangifte staat klaar", tekst: "Alle rubrieken, inclusief verlegde btw uit de EU en je ICP-opgaaf. Je neemt vier getallen over bij de Belastingdienst. Twee minuten.", mock: <MockBtw /> },
+const functies: { kop: string; tekst: string }[] = [
+  { kop: "Bankregels geboekt voordat je wakker bent", tekst: "Koppel je bank. Elke nacht leest de bot je nieuwe regels, kiest categorie en btw-code en schrijft in één zin waarom." },
+  { kop: "Bonnen: foto maken is genoeg", tekst: "Leverancier, datum, bedrag en btw worden uitgelezen. De bon hangt vanzelf aan de juiste bankregel." },
+  { kop: "Facturen die zichzelf opvolgen", tekst: "Met iDEAL-link en e-factuur. Herinneringen op dag 7, 21 en 35 gaan vanzelf. Jij hoeft er niet achteraan." },
+  { kop: "Btw-aangifte in twee minuten", tekst: "Elk kwartaal staan alle rubrieken klaar, met verlegde btw uit de EU en je ICP-opgaaf. Overnemen en klaar." },
+  { kop: "Nooit meer schrikken van de inkomstenbelasting", tekst: "Je ziet het hele jaar wat je moet reserveren, met zelfstandigenaftrek, MKB-vrijstelling en urencriterium erbij." },
+  { kop: "Vraag het gewoon", tekst: "Hoeveel gaf ik uit aan software? Wie betaalt altijd te laat? De bot kijkt in je cijfers en antwoordt direct." },
 ];
 
 const vragen: [string, string][] = [
@@ -131,125 +53,150 @@ const vragen: [string, string][] = [
 
 export default function Landing() {
   return (
-    <main className="flex-1">
-      <header className="sticky top-0 z-20 bg-inkt/95 text-white backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3.5">
-          <Woordmerk donker />
-          <nav className="flex items-center gap-6 text-[15px] text-white/70">
-            <a href="#dag" className="hidden hover:text-white md:inline">Hoe het werkt</a>
-            <a href="#werkt-met" className="hidden hover:text-white md:inline">Werkt met</a>
-            <a href="#prijs" className="hidden hover:text-white md:inline">Prijs</a>
-            <Link href="/login" className="hover:text-white">Inloggen</Link>
-            <Link href="/login" className="knop knop-klein hidden bg-mosterd text-inkt hover:bg-[#f0c74a] sm:inline-flex">Gratis proberen</Link>
+    <main className="flex-1 px-3 pt-3 md:px-6 md:pt-5">
+      {/* Zwevende pil-navigatie */}
+      <header className="sticky top-3 z-30 md:top-5">
+        <div className="pilnav">
+          <Link href="/" className="display text-[20px] font-bold tracking-tight">{MERK}<span className="text-groen">.</span></Link>
+          <nav className="hidden items-center gap-7 text-[15px] font-medium text-tekst-2 md:flex">
+            <a href="#functies" className="hover:text-tekst">Wat hij doet</a>
+            <a href="#werkt-met" className="hover:text-tekst">Werkt met</a>
+            <a href="#prijs" className="hover:text-tekst">Prijs</a>
+            <a href="#vragen" className="hover:text-tekst">Vragen</a>
           </nav>
+          <div className="flex items-center gap-2">
+            <Link href="/login" className="hidden px-3 text-[15px] font-medium text-tekst-2 hover:text-tekst sm:inline">Inloggen</Link>
+            <Link href="/login" className="knop knop-groen knop-klein">Gratis proberen</Link>
+          </div>
         </div>
       </header>
 
-      {/* Held: de nacht. Het bonnetje is het enige licht. */}
-      <section className="nacht text-white">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-14 md:grid-cols-[1.2fr_.8fr] md:pb-28 md:pt-24">
+      {/* Held: donker blok met grote ronde hoeken */}
+      <section className="blok-donker mt-4 md:mt-6">
+        <div className="grid items-center gap-12 px-7 pb-12 pt-14 md:grid-cols-[1fr_1.05fr] md:px-14 md:pb-16 md:pt-20">
           <div>
-            <h1 className="display text-[44px] font-semibold leading-[1] tracking-[-0.02em] md:text-[66px]">
-              Je boekhouding doet zichzelf.<br />
-              <span className="text-mosterd">’s Nachts.</span>
+            <h1 className="display text-[48px] font-bold leading-[0.98] tracking-[-0.03em] md:text-[76px]">
+              <span className="text-groen-fel">Boekhouding</span><br />die zichzelf<br />doet.
             </h1>
             <p className="mt-7 max-w-md text-[19px] leading-[1.5] text-white/70">
-              Koppel je bank. Vannacht boekt de bot je regels, hangt je bonnen eraan, stuurt herinneringen en zet je btw-aangifte klaar. Jij tikt af en toe een antwoord.
+              Koppel je bank en de bot boekt elke nacht je regels, bonnen en facturen. Jij tikt af en toe een antwoord. Vaste prijs, € {PRIJS} per maand.
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-5">
-              <Link href="/login" className="knop bg-mosterd px-7 py-4 text-[16px] text-inkt hover:bg-[#f0c74a]">Start gratis, 30 dagen</Link>
-              <span className="text-[15px] leading-snug text-white/60">Geen creditcard. Daarna € {PRIJS} per maand,<br className="hidden sm:block" /> maandelijks opzegbaar.</span>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link href="/login" className="knop knop-groen px-7 py-4 text-[16px]">Start gratis, 30 dagen <Pijl /></Link>
+              <a href="#functies" className="knop border-white/20 bg-transparent px-7 py-4 text-[16px] text-white hover:bg-white/10">Bekijk wat hij doet</a>
+            </div>
+            <p className="mt-6 text-[14px] text-white/50">Geen creditcard nodig. Maandelijks opzegbaar.</p>
+          </div>
+          <div className="raam raam-donker">
+            <div className="raam-balk"><i /><i /><i /><span>app.zelfboek.nl</span></div>
+            <Image src="/schermen/dashboard.png" alt={`Het overzicht in ${MERK}: alles is geboekt, zes kleine vragen, omzet en kosten van het jaar`} width={1440} height={900} className="block w-full" priority />
+          </div>
+        </div>
+      </section>
+
+      {/* Drie kaarten onder de held */}
+      <section className="mx-auto mt-3 grid max-w-[1320px] gap-3 md:grid-cols-3">
+        {[["Bank", "Elke nacht geboekt, met btw-code en uitleg.", "vanzelf"], ["Bonnen", "Foto maken. De bot koppelt hem aan de bankregel.", "vanzelf"], ["Btw-aangifte", "Alle rubrieken klaar, elk kwartaal.", "2 minuten"]].map(([k, t, p]) => (
+          <div key={k} className="blok-donker-klein">
+            <h2 className="display text-[22px] font-bold">{k}.</h2>
+            <p className="mt-1 text-[15px] text-white/65">{t}</p>
+            <div className="mt-6 flex items-center justify-between">
+              <span className="display text-[20px] font-bold text-groen-fel">{p}</span>
+              <Link href="/login" className="rondknop" aria-label={`Start met ${k}`}><Pijl /></Link>
             </div>
           </div>
-          <Bonnetje />
+        ))}
+      </section>
+
+      {/* Wat hij doet */}
+      <section id="functies" className="mx-auto max-w-6xl px-3 py-20 md:px-6 md:py-28">
+        <Eyebrow>Wat hij doet</Eyebrow>
+        <h2 className="display mt-4 max-w-3xl text-[40px] font-bold leading-[1] tracking-[-0.03em] md:text-[60px]">Alles wat een boekhouder deed. Elke nacht.</h2>
+        <p className="mt-4 max-w-xl text-[18px] text-tekst-2">Jij doet wat je al deed: facturen sturen, bonnen bewaren. Alleen korter.</p>
+        <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {functies.map((f) => (
+            <div key={f.kop} className="blok-wit">
+              <h3 className="display text-[22px] font-bold leading-tight">{f.kop}</h3>
+              <p className="mt-2 text-[15px] leading-relaxed text-tekst-2">{f.tekst}</p>
+            </div>
+          ))}
         </div>
       </section>
 
-      {/* Werkt met: gelijke vakjes, woordmerken zonder naam erachter */}
-      <section id="werkt-met" className="bg-papier">
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          <p className="text-[17px] text-tekst-2">Werkt met elke Nederlandse bank, je verkoopkanalen en het pakket waar je vandaan komt.</p>
-          <div className="merken mt-6">
-            {[...banken, ...kanalen, ...pakketten].map((b) => <div key={b} className="merk"><Logo id={b} hoogte={22} /></div>)}
+      {/* Groot scherm in zacht vlak */}
+      <section className="blok-zand">
+        <div className="grid items-center gap-10 px-7 py-12 md:grid-cols-[1.3fr_1fr] md:px-14 md:py-16">
+          <div className="raam">
+            <div className="raam-balk"><i /><i /><i /><span>app.zelfboek.nl/app/bank</span></div>
+            <Image src="/schermen/bank.png" alt={`De bankpagina in ${MERK}: elke regel geboekt met categorie, btw-code en uitleg`} width={1440} height={900} className="block w-full" />
           </div>
-          <p className="mt-4 text-[14px] text-tekst-3">Alle koppelingen alleen-lezen: niemand kan geld overmaken, ook de bot niet.</p>
-        </div>
-      </section>
-
-      {/* Een etmaal */}
-      <section id="dag" className="kasboek border-t border-lijn">
-        <div className="mx-auto max-w-6xl px-6 py-20">
-          <div className="kasboek-marge">
-            <h2 className="display max-w-2xl text-[38px] font-semibold leading-[1.05] md:text-[48px]">Een etmaal met {MERK}.</h2>
-            <p className="mt-3 max-w-md text-[17px] text-tekst-2">De bot werkt als jij slaapt. Overdag doe je wat je al deed, alleen korter.</p>
-          </div>
-          <ol className="mt-14">
-            {dag.map((m) => (
-              <li key={m.tijd} className="dag-moment">
-                <span className={`dag-tijd ${m.wie === "bot" ? "text-groen" : "text-inkt"}`}>{m.tijd}</span>
-                <div className="dag-inhoud">
-                  <p className="text-[13px] text-tekst-3">{m.wie === "bot" ? "De bot" : "Jij"}</p>
-                  <h3 className="display mt-0.5 text-[24px] font-semibold leading-tight">{m.kop}</h3>
-                  <p className="mt-2 max-w-lg text-[16px] leading-relaxed text-tekst-2">{m.tekst}</p>
-                  {m.mock && <div className="mt-4 max-w-lg">{m.mock}</div>}
-                </div>
-              </li>
-            ))}
-          </ol>
-          <div className="raam mt-16">
-            <div className="raam-balk"><i /><i /><i /><span>app.zelfboek.nl/app</span></div>
-            <Image src="/schermen/dashboard.png" alt={`Het overzicht in ${MERK} om 07:30: alles is geboekt, zes kleine vragen, omzet en kosten van het jaar`} width={1440} height={900} className="block w-full" />
-          </div>
-        </div>
-      </section>
-
-      {/* Prijs: één som, zoals onderaan een bon */}
-      <section id="prijs" className="bg-white">
-        <div className="mx-auto grid max-w-6xl gap-14 px-6 py-20 md:grid-cols-2 md:items-start">
           <div>
-            <h2 className="display text-[38px] font-semibold leading-[1.05] md:text-[48px]">Eén prijs. Alles erin.</h2>
-            <p className="mt-4 max-w-md text-[17px] leading-relaxed text-tekst-2">Een boekhouder kost een zzp’er 600 tot 2.500 euro per jaar en kijkt één keer per kwartaal. {MERK} kost {PRIJS * 12} euro per jaar en kijkt elke nacht.</p>
-            <dl className="som mt-10 max-w-md">
-              {[["Boekhouder, per jaar", "€ 600 tot 2.500"], [`${MERK}, per jaar`, `€ ${PRIJS * 12}`]].map(([a, b]) => (
-                <div key={a} className="som-rij"><dt>{a}</dt><dd className="tabular">{b}</dd></div>
-              ))}
-              <div className="som-rij som-totaal"><dt>Per maand, zonder btw</dt><dd className="cijfer text-[40px]">€ {PRIJS}</dd></div>
-            </dl>
-          </div>
-          <div className="md:pt-3">
-            <ul className="space-y-3 text-[16px]">
-              {["Onbeperkt bankregels, bonnen en facturen", "Bankkoppeling en alle verkoopkanalen", "Btw-aangifte, ICP, IB-indicatie en jaarrekening", "Herinneringen, iDEAL-links en e-facturen via Peppol", "Een bot die je vragen over je cijfers beantwoordt", "Overstappen met je hele historie", "Dertig dagen gratis, daarna maandelijks opzegbaar"].map((x) => (
-                <li key={x} className="flex gap-3 border-b border-lijn pb-3"><span className="mt-[3px] h-4 w-4 shrink-0 rounded-full bg-groen-licht text-center text-[11px] leading-4 text-groen-tekst">✓</span>{x}</li>
+            <Eyebrow>Zo ziet je ochtend eruit</Eyebrow>
+            <h2 className="display mt-4 text-[36px] font-bold leading-[1.02] tracking-[-0.02em] md:text-[48px]">Eén scherm. Meestal niets te doen.</h2>
+            <ul className="mt-7 space-y-3 text-[17px]">
+              {["Bovenaan staat of je iets moet doen", "Twijfelregels beantwoord je met één tik", "Omzet, kosten, winst en btw altijd actueel", "Bij elke boeking staat waarom"].map((x) => (
+                <li key={x} className="flex gap-3"><Vink />{x}</li>
               ))}
             </ul>
-            <Link href="/login" className="knop knop-groen mt-8 px-7 py-4 text-[16px]">Start gratis, 30 dagen</Link>
+            <Link href="/login" className="knop knop-groen mt-9">Start gratis, 30 dagen <Pijl /></Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Werkt met: pillen */}
+      <section id="werkt-met" className="mx-auto max-w-6xl px-3 py-20 md:px-6">
+        <div className="flex flex-col gap-6">
+          {[["Banken", banken], ["Verkoopkanalen", kanalen], ["Overstappen van", pakketten]].map(([kop, lijst]) => (
+            <div key={kop as string} className="flex flex-wrap items-center gap-2.5">
+              <span className="mr-3 w-full text-[15px] font-medium text-tekst-2 md:w-36">{kop as string}</span>
+              {(lijst as LogoId[]).map((b) => <span key={b} className="merkpil"><Logo id={b} hoogte={18} /></span>)}
+            </div>
+          ))}
+        </div>
+        <p className="mt-6 text-[14px] text-tekst-3">Elke Nederlandse bank via PSD2. Alle koppelingen alleen-lezen: niemand kan geld overmaken, ook de bot niet.</p>
+      </section>
+
+      {/* Prijs: donker blok */}
+      <section id="prijs" className="blok-donker">
+        <div className="grid gap-12 px-7 py-14 md:grid-cols-2 md:items-center md:px-14 md:py-20">
+          <div>
+            <Eyebrow licht>Prijs</Eyebrow>
+            <h2 className="display mt-4 text-[40px] font-bold leading-[1] tracking-[-0.03em] md:text-[60px]">Eén prijs.<br />Alles erin.</h2>
+            <p className="mt-5 max-w-md text-[17px] leading-relaxed text-white/65">Een boekhouder kost 600 tot 2.500 euro per jaar en kijkt één keer per kwartaal. {MERK} kijkt elke nacht.</p>
+            <p className="display mt-8 text-[64px] font-bold leading-none tracking-[-0.03em]">€ {PRIJS}<span className="ml-3 text-[18px] font-medium text-white/55">per maand, zonder btw</span></p>
+          </div>
+          <div className="rounded-[24px] bg-white/[.06] p-7 ring-1 ring-white/10 md:p-9">
+            <ul className="space-y-3 text-[16px]">
+              {["Onbeperkt bankregels, bonnen en facturen", "Bankkoppeling en alle verkoopkanalen", "Btw-aangifte, ICP, IB-indicatie en jaarrekening", "Herinneringen, iDEAL-links en e-facturen via Peppol", "Een bot die je vragen over je cijfers beantwoordt", "Overstappen met je hele historie"].map((x) => (
+                <li key={x} className="flex gap-3"><Vink fel />{x}</li>
+              ))}
+            </ul>
+            <Link href="/login" className="knop knop-groen mt-8 w-full justify-center py-4 text-[16px]">Start gratis, 30 dagen <Pijl /></Link>
+            <p className="mt-4 text-center text-[14px] text-white/50">Geen creditcard nodig. Maandelijks opzegbaar.</p>
           </div>
         </div>
       </section>
 
       {/* Vragen */}
-      <section id="vragen" className="border-t border-lijn bg-white">
-        <div className="mx-auto max-w-3xl px-6 py-20">
-          <h2 className="display text-[34px] font-semibold leading-tight">Vragen die we vaak krijgen</h2>
-          <div className="mt-8 border-t border-lijn-2">
-            {vragen.map(([v, a]) => (
-              <details key={v} className="vraag">
-                <summary>{v}</summary>
-                <p>{a}</p>
-              </details>
-            ))}
-          </div>
+      <section id="vragen" className="mx-auto max-w-3xl px-3 py-20 md:px-6 md:py-28">
+        <Eyebrow>Vragen</Eyebrow>
+        <h2 className="display mt-4 text-[36px] font-bold leading-[1.02] tracking-[-0.02em] md:text-[48px]">Wat mensen ons vragen.</h2>
+        <div className="mt-8">
+          {vragen.map(([v, a]) => (
+            <details key={v} className="vraag">
+              <summary>{v}</summary>
+              <p>{a}</p>
+            </details>
+          ))}
         </div>
       </section>
 
       {/* Slot */}
-      <section className="bg-inkt text-white">
-        <div className="mx-auto max-w-6xl px-6 py-20 md:py-24">
-          <h2 className="display max-w-2xl text-[40px] font-semibold leading-[1.05] md:text-[56px]">Morgenochtend is je boekhouding al gedaan.</h2>
-          <div className="mt-8 flex flex-wrap items-center gap-5">
-            <Link href="/login" className="knop bg-mosterd px-8 py-4 text-[16px] text-inkt hover:bg-[#f0c74a]">Start gratis, 30 dagen</Link>
-            <span className="text-[15px] text-white/60">Account in dertig seconden, alleen een e-mailadres.</span>
-          </div>
+      <section className="blok-donker mb-3 md:mb-6">
+        <div className="px-7 py-16 text-center md:px-14 md:py-24">
+          <h2 className="display mx-auto max-w-2xl text-[40px] font-bold leading-[1] tracking-[-0.03em] md:text-[64px]">Morgenochtend is je boekhouding al gedaan.</h2>
+          <Link href="/login" className="knop knop-groen mt-9 px-8 py-4 text-[16px]">Start gratis, 30 dagen <Pijl /></Link>
+          <p className="mt-4 text-[14px] text-white/50">Account in dertig seconden, alleen een e-mailadres.</p>
         </div>
       </section>
 

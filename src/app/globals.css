@@ -2,18 +2,19 @@
 
 :root {
   color-scheme: light;
-  --inkt: #13201a;
-  --inkt-2: #1c2e25;
-  --inkt-3: #2a4034;
-  --papier: #f4f6f2;
+  --inkt: #16130f;
+  --inkt-2: #221d17;
+  --inkt-3: #2e2720;
+  --papier: #fbf9f5;
   --wit: #ffffff;
-  --lijn: #e1e6df;
-  --lijn-2: #cfd6cc;
-  --tekst: #16211b;
-  --tekst-2: #5b6a61;
-  --tekst-3: #8a978f;
+  --lijn: #ebe6dd;
+  --lijn-2: #d9d2c6;
+  --tekst: #16130f;
+  --tekst-2: #6b645a;
+  --tekst-3: #9a938a;
   --groen: #1e6b47;
   --groen-licht: #e3f1e9;
+  --groen-fel: #3dbd7d;
   --groen-tekst: #17543a;
   --mosterd: #e8b931;
   --mosterd-licht: #fbf1cf;
@@ -37,6 +38,7 @@
   --color-tekst-3: var(--tekst-3);
   --color-groen: var(--groen);
   --color-groen-licht: var(--groen-licht);
+  --color-groen-fel: var(--groen-fel);
   --color-groen-tekst: var(--groen-tekst);
   --color-mosterd: var(--mosterd);
   --color-mosterd-licht: var(--mosterd-licht);
@@ -45,7 +47,7 @@
   --color-rood-licht: var(--rood-licht);
   --color-rood-tekst: var(--rood-tekst);
   --font-sans: var(--font-body), system-ui, sans-serif;
-  --font-display: var(--font-display), var(--font-body), sans-serif;
+  --font-display: var(--font-body), sans-serif;
 }
 
 body {
@@ -57,12 +59,12 @@ body {
 }
 
 h1, h2, h3, .display {
-  font-family: var(--font-display), sans-serif;
-  letter-spacing: -0.01em;
+  font-family: var(--font-body), sans-serif;
+  letter-spacing: -0.02em;
 }
 
 .cijfer {
-  font-family: var(--font-display), sans-serif;
+  font-family: var(--font-body), sans-serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }
@@ -131,83 +133,34 @@ label.lbl { display: block; font-size: 14px; color: var(--tekst-2); margin-botto
   main { padding: 0 !important; }
 }
 
-/* ── Homepage: kasboekpapier ─────────────────────────────────────────────
-   Liniëring elke 36px, en een rode kantlijn zoals in een echt kasboek. */
-.kasboek {
-  background-color: var(--papier);
-  background-image:
-    repeating-linear-gradient(to bottom, transparent 0 35px, rgba(19,32,26,.07) 35px 36px);
-  background-attachment: local;
+/* ── Homepage in de Rank Studio-taal: zwevende pilnavigatie, grote donkere blokken, ronde hoeken ── */
+.pilnav {
+  margin: 0 auto; max-width: 1320px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 10px 10px 10px 22px; border-radius: 999px; background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+  box-shadow: 0 1px 0 rgba(22,19,15,.04), 0 10px 30px -18px rgba(22,19,15,.25);
 }
-.kasboek-marge { position: relative; padding-left: 28px; }
-.kasboek-marge::before {
-  content: ""; position: absolute; left: 0; top: -18px; bottom: -18px; width: 1px;
-  background: rgba(195,61,46,.45);
-}
-@media (min-width: 768px) { .kasboek-marge { padding-left: 36px; } }
-
-/* Het bonnetje: wit, smalle kolom, geperforeerde onderkant, één keer uitgedraaid. */
-.bon {
-  position: relative; margin: 0 auto; width: min(100%, 380px);
-  background: #fff; color: var(--tekst); padding: 26px 26px 22px; font-size: 14px;
-  transform: rotate(-1.4deg);
-  box-shadow: 0 30px 50px -30px rgba(19,32,26,.5), 0 1px 0 rgba(0,0,0,.04);
-  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px),
-    97.5% 100%, 95% calc(100% - 7px), 92.5% 100%, 90% calc(100% - 7px), 87.5% 100%, 85% calc(100% - 7px), 82.5% 100%, 80% calc(100% - 7px), 77.5% 100%, 75% calc(100% - 7px), 72.5% 100%, 70% calc(100% - 7px), 67.5% 100%, 65% calc(100% - 7px), 62.5% 100%, 60% calc(100% - 7px), 57.5% 100%, 55% calc(100% - 7px), 52.5% 100%, 50% calc(100% - 7px), 47.5% 100%, 45% calc(100% - 7px), 42.5% 100%, 40% calc(100% - 7px), 37.5% 100%, 35% calc(100% - 7px), 32.5% 100%, 30% calc(100% - 7px), 27.5% 100%, 25% calc(100% - 7px), 22.5% 100%, 20% calc(100% - 7px), 17.5% 100%, 15% calc(100% - 7px), 12.5% 100%, 10% calc(100% - 7px), 7.5% 100%, 5% calc(100% - 7px), 2.5% 100%, 0 calc(100% - 7px));
-  padding-bottom: 30px;
-}
-.bon-kop { text-align: center; padding-bottom: 14px; border-bottom: 1px dashed var(--lijn-2); }
-.bon-regels { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; }
-.bon-regel { display: flex; align-items: baseline; gap: 8px; }
-.bon-leader { flex: 1; border-bottom: 1px dotted var(--lijn-2); transform: translateY(-4px); min-width: 12px; }
-.bon-totaal { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--lijn-2); font-weight: 600; font-size: 16px; }
-@keyframes bon-uitdraai { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-.bon-regel { opacity: 0; animation: bon-uitdraai .5s ease-out forwards; }
-@media (prefers-reduced-motion: reduce) { .bon-regel { opacity: 1; animation: none; } .bon { transform: none; } }
-
-/* De nacht: diep groen-zwart met een eerste streep ochtend onderin. */
-.nacht {
-  background:
-    radial-gradient(90% 60% at 50% 115%, rgba(232,185,49,.22), transparent 60%),
-    radial-gradient(60% 50% at 15% 0%, rgba(30,107,71,.45), transparent 65%),
-    var(--inkt);
-}
-.nacht .bon { box-shadow: 0 50px 80px -30px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.04); }
-
-/* Merken: gelijke vakjes, logo gecentreerd, allemaal even hoog. */
-.merken { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-@media (min-width: 640px) { .merken { grid-template-columns: repeat(5, 1fr); } }
-@media (min-width: 1024px) { .merken { grid-template-columns: repeat(7, 1fr); } }
-.merk { display: flex; align-items: center; justify-content: center; height: 64px; padding: 0 12px; background: #fff; border: 1px solid var(--lijn); border-radius: 10px; }
-.merk img { max-height: 24px; max-width: 120px !important; }
-.merk span { white-space: nowrap; font-size: 14px; }
-
-/* Etmaal: tijd in de kantlijn, inhoud erachter, één doorlopende lijn. */
-.dag-moment { display: grid; grid-template-columns: 72px 1fr; gap: 0 20px; padding: 22px 0 26px; border-top: 1px solid var(--lijn-2); }
-.dag-tijd { font-family: var(--font-display), sans-serif; font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; padding-top: 22px; }
-@media (min-width: 768px) { .dag-moment { grid-template-columns: 120px 1fr; gap: 0 36px; } .dag-tijd { font-size: 22px; } }
-
-/* Mini-scherm: één wit vlak, regels als in de app, zonder pillen. */
-.mini { background: #fff; border: 1px solid var(--lijn); border-radius: 10px; font-size: 14px; overflow: hidden; }
-.mini-rij { display: flex; align-items: center; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--lijn); }
-.mini-rij:last-child { border-bottom: 0; }
-
-/* Som zoals onder aan een bon. */
-.som-rij { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px dotted var(--lijn-2); font-size: 16px; }
-.som-rij dt { color: var(--tekst-2); }
-.som-totaal { border-bottom: 0; border-top: 2px solid var(--inkt); margin-top: 6px; padding-top: 14px; }
-.som-totaal dt { color: var(--tekst); font-weight: 500; }
+.blok-donker { max-width: 1320px; margin-left: auto; margin-right: auto; border-radius: 32px; background: var(--inkt); color: #fff; overflow: hidden; }
+.blok-donker-klein { border-radius: 24px; background: var(--inkt); color: #fff; padding: 26px 28px; }
+.blok-zand { max-width: 1320px; margin: 0 auto; border-radius: 32px; background: #f1ece3; overflow: hidden; }
+.blok-wit { border-radius: 24px; background: #fff; padding: 28px; border: 1px solid var(--lijn); }
+.rondknop { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 999px; background: var(--groen); color: #fff; }
+.rondknop:hover { background: var(--groen-fel); }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.eyebrow-stip { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.merkpil { display: inline-flex; align-items: center; height: 44px; padding: 0 18px; border-radius: 999px; background: #fff; border: 1px solid var(--lijn); font-weight: 600; }
+.merkpil img { max-width: 90px !important; }
+.raam-donker { box-shadow: 0 40px 80px -30px rgba(0,0,0,.8); border-color: rgba(255,255,255,.12); }
 
 /* Vragen: open en dicht, zonder extra chrome. */
 .vraag { border-bottom: 1px solid var(--lijn-2); }
-.vraag summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; font-weight: 600; font-size: 17px; }
+.vraag summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; padding: 18px 0; font-weight: 600; font-size: 17px; }
 .vraag summary::-webkit-details-marker { display: none; }
 .vraag summary::after { content: "+"; color: var(--tekst-3); font-weight: 400; font-size: 22px; line-height: 1; }
 .vraag[open] summary::after { content: "–"; }
 .vraag p { padding: 0 0 18px; max-width: 60ch; color: var(--tekst-2); font-size: 16px; line-height: 1.55; }
 
 /* Browser-raam om een echt scherm van de app heen. */
-.raam { border-radius: 14px; overflow: hidden; border: 1px solid var(--lijn-2); background: #fff; box-shadow: 0 40px 80px -40px rgba(19,32,26,.45), 0 1px 0 rgba(0,0,0,.03); }
+.raam { border-radius: 18px; overflow: hidden; border: 1px solid var(--lijn-2); background: #fff; box-shadow: 0 40px 80px -40px rgba(19,32,26,.45), 0 1px 0 rgba(0,0,0,.03); }
 .raam-balk { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: #eef1ec; border-bottom: 1px solid var(--lijn); }
 .raam-balk i { width: 10px; height: 10px; border-radius: 50%; background: var(--lijn-2); display: block; }
 .raam-balk span { margin-left: 10px; flex: 1; height: 20px; border-radius: 6px; background: #fff; font-size: 11px; color: var(--tekst-3); display: flex; align-items: center; padding: 0 10px; }

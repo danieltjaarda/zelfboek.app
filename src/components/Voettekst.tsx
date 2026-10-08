@@ -11,13 +11,13 @@ const kolommen: { kop: string; links: [string, string][] }[] = [
 
 export function Voettekst() {
   return (
-    <footer className="bg-inkt text-white">
-      <div className="mx-auto max-w-6xl px-6 py-14">
+    <footer className="blok-donker mb-3 bg-inkt text-white md:mb-6">
+      <div className="px-7 py-14 md:px-14">
         <div className="grid gap-10 md:grid-cols-[1.3fr_1fr_1fr_1fr_1fr]">
           <div>
             <Woordmerk donker size={20} />
             <p className="mt-4 max-w-xs text-[15px] leading-relaxed text-white/65">Boekhouding die zichzelf doet. Voor eenmanszaken en vof’s zonder personeel.</p>
-            <Link href="/login" className="knop mt-6 bg-mosterd text-inkt hover:bg-[#f0c74a]">Start gratis, 30 dagen</Link>
+            <Link href="/login" className="knop knop-groen mt-6">Start gratis, 30 dagen</Link>
           </div>
           {kolommen.map((k) => (
             <div key={k.kop}>
