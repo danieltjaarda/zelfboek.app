@@ -64,6 +64,9 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
     return <span title={k.laatsteFout ?? undefined}><Pil kleur={kleur}>{tekst}</Pil></span>;
   };
 
+  // Wat live is staat vooraan in de rij.
+  const liveEerst = (lijst: Dienst[]) => [...lijst].sort((a, b) => Number(per.has(b.soort)) - Number(per.has(a.soort)));
+
   const dienstTegel = (d: Dienst) => {
     const k = per.get(d.soort);
     return (
@@ -101,7 +104,9 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {BANKEN.map((b) => {
           const rekeningen = psd2Rekeningen.filter((r) => normaal(r.bank ?? "").includes(normaal(b.naam).replace("bank", "")) || normaal(r.naam).includes(b.id));
-          const gekoppeld = rekeningen.length > 0;
+          return { ...b, rekeningen, gekoppeld: rekeningen.length > 0 };
+        }).sort((a, b) => Number(b.gekoppeld) - Number(a.gekoppeld)).map((b) => {
+          const { rekeningen, gekoppeld } = b;
           return (
             <AppTegel
               key={b.id}
@@ -132,12 +137,12 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
 
       <h2 className="mt-8 text-[15px] font-semibold">Verkoopkanalen en betalingen</h2>
       <p className="mb-3 mt-0.5 text-[13px] text-tekst-2">Uitbetalingen worden omzet, kosten worden kosten. Je hoeft er niets meer aan te doen.</p>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{KANALEN.map(dienstTegel)}</div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">{liveEerst(KANALEN).map(dienstTegel)}</div>
 
       <h2 className="mt-8 text-[15px] font-semibold">Overstappen van</h2>
       <p className="mb-3 mt-0.5 text-[13px] text-tekst-2">Koppel je oude pakket, dan nemen we klanten, facturen en mutaties over.</p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {PAKKETTEN.map(dienstTegel)}
+        {liveEerst(PAKKETTEN).map(dienstTegel)}
         <AppTegel icoon={<AppIcoon id="jortt" />} naam="Jortt" uitleg="Exporteer je gegevens in Jortt en upload het bestand." status={null} actie={<Link href="/app/importeren" className="knop-licht knop-klein">Bestand uploaden</Link>} />
         <AppTegel icoon={<Vak><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M8 4v16M8 14h13" /></svg></Vak>} naam="Excel of ander pakket" uitleg="Vul ons sjabloon in of upload een bankexport." status={null} actie={<Link href="/app/importeren" className="knop-licht knop-klein">Naar Overstappen</Link>} />
       </div>
