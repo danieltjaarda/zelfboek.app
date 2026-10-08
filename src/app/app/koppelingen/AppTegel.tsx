@@ -7,7 +7,7 @@ type Props = {
   icoon: React.ReactNode;
   naam: string;
   uitleg: string;
-  status: React.ReactNode;
+  status?: React.ReactNode;
   /** Tekst op de knop; met `licht` wordt het een witte knop (bijvoorbeeld "Beheren"). */
   knop?: { tekst: string; licht?: boolean };
   /** Eigen actie in de voet (bijvoorbeeld een formulier dat direct naar de bank gaat); dan geen dialoog. */
@@ -64,7 +64,7 @@ export function AppTegel({ icoon, naam, uitleg, status, knop, actie, children }:
               <span className="shrink-0">{icoon}</span>
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[15px] font-semibold">{naam}</span>
-                <span className="block truncate text-[13px] text-tekst-3">{status}</span>
+                {status && <span className="block truncate text-[13px] text-tekst-3">{status}</span>}
               </span>
               <button type="button" onClick={sluit} className="iconknop h-8 w-8" aria-label="Sluiten">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>

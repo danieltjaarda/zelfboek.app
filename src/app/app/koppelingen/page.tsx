@@ -58,9 +58,9 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
 
   const statusPil = (soort: string) => {
     const k = per.get(soort);
-    if (!k) return <Pil kleur="grijs">Niet gekoppeld</Pil>;
+    if (!k) return null;
     const kleur = k.status === "actief" ? "groen" : k.status === "uitgeschakeld" ? "grijs" : "rood";
-    const tekst = k.status === "actief" ? "Gekoppeld" : k.status === "uitgeschakeld" ? "Uitgeschakeld" : k.status === "verlopen" ? "Verlopen" : "Fout";
+    const tekst = k.status === "actief" ? "Live" : k.status === "uitgeschakeld" ? "Uitgeschakeld" : k.status === "verlopen" ? "Verlopen" : "Fout";
     return <span title={k.laatsteFout ?? undefined}><Pil kleur={kleur}>{tekst}</Pil></span>;
   };
 
@@ -108,7 +108,7 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
               icoon={<AppIcoon id={b.id} />}
               naam={b.naam}
               uitleg={gekoppeld ? `${rekeningen.length === 1 ? "1 rekening" : `${rekeningen.length} rekeningen`} gekoppeld, elke nacht bijgewerkt.` : "Transacties en saldo elke nacht automatisch."}
-              status={gekoppeld ? <Pil kleur="groen">Gekoppeld</Pil> : <Pil kleur="grijs">Niet gekoppeld</Pil>}
+              status={gekoppeld ? <Pil kleur="groen">Live</Pil> : null}
               knop={gekoppeld ? { tekst: "Beheren", licht: true } : undefined}
               actie={gekoppeld ? undefined : <form action={startPsd2}><input type="hidden" name="bank" value={b.naam} /><button className="knop knop-klein">Koppelen</button></form>}
             >
@@ -138,19 +138,19 @@ export default async function Koppelingen({ searchParams }: { searchParams: Prom
       <p className="mb-3 mt-0.5 text-[13px] text-tekst-2">Koppel je oude pakket, dan nemen we klanten, facturen en mutaties over.</p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {PAKKETTEN.map(dienstTegel)}
-        <AppTegel icoon={<AppIcoon id="jortt" />} naam="Jortt" uitleg="Exporteer je gegevens in Jortt en upload het bestand." status={<Pil kleur="grijs">Via bestand</Pil>} actie={<Link href="/app/importeren" className="knop-licht knop-klein">Bestand uploaden</Link>} />
-        <AppTegel icoon={<Vak><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M8 4v16M8 14h13" /></svg></Vak>} naam="Excel of ander pakket" uitleg="Vul ons sjabloon in of upload een bankexport." status={<Pil kleur="grijs">Via bestand</Pil>} actie={<Link href="/app/importeren" className="knop-licht knop-klein">Naar Overstappen</Link>} />
+        <AppTegel icoon={<AppIcoon id="jortt" />} naam="Jortt" uitleg="Exporteer je gegevens in Jortt en upload het bestand." status={null} actie={<Link href="/app/importeren" className="knop-licht knop-klein">Bestand uploaden</Link>} />
+        <AppTegel icoon={<Vak><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M3 9h18M8 4v16M8 14h13" /></svg></Vak>} naam="Excel of ander pakket" uitleg="Vul ons sjabloon in of upload een bankexport." status={null} actie={<Link href="/app/importeren" className="knop-licht knop-klein">Naar Overstappen</Link>} />
       </div>
 
       <h2 className="mt-8 text-[15px] font-semibold">Overig</h2>
       <p className="mb-3 mt-0.5 text-[13px] text-tekst-2">Kleine dingen die het leven makkelijker maken.</p>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <AppTegel icoon={<Vak><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg></Vak>} naam="Bonnen per e-mail" uitleg="Stuur een bon door naar je eigen adres, de bot leest hem uit." status={<Pil kleur="groen">Actief</Pil>} knop={{ tekst: "Adres tonen", licht: true }}>
+        <AppTegel icoon={<Vak><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></svg></Vak>} naam="Bonnen per e-mail" uitleg="Stuur een bon door naar je eigen adres, de bot leest hem uit." status={<Pil kleur="groen">Live</Pil>} knop={{ tekst: "Adres tonen", licht: true }}>
           <p className="text-sm text-tekst-2">Stuur bonnen en inkoopfacturen als bijlage door naar dit adres. De bot leest het bedrag, de btw en de leverancier en hangt de bon aan de juiste bankregel.</p>
           <p className="mt-3 break-all rounded-md border border-lijn bg-papier px-3 py-2 font-mono text-[13px]">{bonAdres}</p>
           <p className="mt-2 text-[13px] text-tekst-3">Tip: zet dit adres als contact in je telefoon, dan deel je een foto in twee tikken.</p>
         </AppTegel>
-        <AppTegel icoon={<AppIcoon id="belastingdienst" />} naam="Belastingdienst" uitleg="Btw-aangifte en ICP-opgaaf klaargezet als SBR-bestand." status={<Pil kleur="grijs">Zelf indienen</Pil>} actie={<Link href="/app/btw" className="knop-licht knop-klein">Naar btw-aangifte</Link>} />
+        <AppTegel icoon={<AppIcoon id="belastingdienst" />} naam="Belastingdienst" uitleg="Btw-aangifte en ICP-opgaaf klaargezet als SBR-bestand." status={null} actie={<Link href="/app/btw" className="knop-licht knop-klein">Naar btw-aangifte</Link>} />
       </div>
 
       <details className="kaart mt-8">
