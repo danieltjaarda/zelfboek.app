@@ -125,7 +125,7 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, inge
                 <>
                   <Icoon naam={it.icoon} size={18} />
                   <span className={`min-w-0 flex-1 truncate ${verborgen}`}>{it.label}</span>
-                  {it.teller ? <span className={`rounded-full bg-mosterd-licht px-1.5 text-[11px] font-semibold leading-[18px] text-mosterd-tekst ${verborgen}`}>{it.teller}</span> : null}
+                  {it.teller ? <span className={`min-w-[18px] rounded-full bg-rood px-1.5 text-center text-[11px] font-bold leading-[18px] text-white ${verborgen}`}>{it.teller}</span> : null}
                 </>
               );
               return (
