@@ -235,6 +235,10 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 @keyframes spot-paneel { from { opacity: 0; transform: translateY(-10px) scale(.97); } to { opacity: 1; transform: none; } }
 .spot-achter { background: rgba(26, 31, 54, 0.28); backdrop-filter: blur(14px) saturate(.9); -webkit-backdrop-filter: blur(14px) saturate(.9); animation: spot-achter .25s ease-out both; cursor: default; }
 .spot-paneel { animation: spot-paneel .28s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes spot-achter-uit { from { opacity: 1; } to { opacity: 0; } }
+@keyframes spot-paneel-uit { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(-6px) scale(.98); } }
+.spot-achter.uit { animation: spot-achter-uit .22s ease-in both; }
+.spot-paneel.uit { animation: spot-paneel-uit .2s ease-in both; pointer-events: none; }
 .spot-vak {
   box-shadow: 0 0 0 3px rgba(29, 177, 223, 0.12), 0 0 18px rgba(29, 177, 223, 0.35), 0 0 48px rgba(29, 177, 223, 0.28), 0 24px 60px -20px rgba(26, 31, 54, 0.5);
 }
