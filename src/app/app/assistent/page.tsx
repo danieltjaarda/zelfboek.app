@@ -6,8 +6,8 @@ import { Kop, knopLicht } from "@/components/ui";
 
 export const instant = false;
 
-export default async function Assistent({ searchParams }: { searchParams: Promise<{ g?: string }> }) {
-  const { g } = await searchParams;
+export default async function Assistent({ searchParams }: { searchParams: Promise<{ g?: string; q?: string }> }) {
+  const { g, q } = await searchParams;
   const o = await huidigeOnderneming();
   const [gesprekken, huidig] = await Promise.all([
     db.gesprek.findMany({ where: { ondernemingId: o.id }, orderBy: { bijgewerkt: "desc" }, take: 15 }),
@@ -19,7 +19,7 @@ export default async function Assistent({ searchParams }: { searchParams: Promis
         {huidig && <Link href="/app/assistent" className={knopLicht}>Nieuw gesprek</Link>}
       </Kop>
       <div className="grid gap-6 lg:grid-cols-[1fr_220px]">
-        <Chat key={huidig?.id ?? "nieuw"} gesprekId={huidig?.id ?? null} start={huidig ? weergaveBerichten(huidig.berichten) : []} />
+        <Chat key={huidig?.id ?? q ?? "nieuw"} gesprekId={huidig?.id ?? null} start={huidig ? weergaveBerichten(huidig.berichten) : []} eersteVraag={huidig ? undefined : q?.trim() || undefined} />
         <aside className="hidden lg:block">
           <p className="mb-2 text-sm font-medium">Eerdere gesprekken</p>
           {gesprekken.length === 0 ? (

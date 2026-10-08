@@ -12,7 +12,7 @@ const SUGGESTIES = [
   "Hoe sta ik ervoor met het urencriterium?",
 ];
 
-export function Chat({ gesprekId: startId, start }: { gesprekId: string | null; start: Bericht[] }) {
+export function Chat({ gesprekId: startId, start, eersteVraag }: { gesprekId: string | null; start: Bericht[]; eersteVraag?: string }) {
   const [gesprekId, setGesprekId] = useState<string | null>(startId);
   const [berichten, setBerichten] = useState<Bericht[]>(start);
   const [invoer, setInvoer] = useState("");
@@ -20,6 +20,13 @@ export function Chat({ gesprekId: startId, start }: { gesprekId: string | null; 
   const onder = useRef<HTMLDivElement>(null);
 
   useEffect(() => { onder.current?.scrollIntoView({ behavior: "smooth" }); }, [berichten]);
+
+  // Een vraag uit de balk op het overzicht wordt één keer meteen gesteld.
+  const gestart = useRef(false);
+  useEffect(() => {
+    if (eersteVraag && !gestart.current) { gestart.current = true; void verstuur(eersteVraag); }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eersteVraag]);
 
   async function verstuur(tekst: string) {
     const t = tekst.trim();

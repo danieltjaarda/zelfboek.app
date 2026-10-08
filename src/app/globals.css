@@ -198,6 +198,22 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 .menu-lijst a:hover, .menu-lijst button:hover { background: var(--papier); }
 .menu-lijst hr { border: 0; border-top: 1px solid var(--lijn); margin: 6px 0; }
 
+/* Vraagbalk voor de bot: gradientrand met een zachte, ademende gloed eromheen. */
+.ai-balk { position: relative; margin: 4px 0 28px; border-radius: 16px; }
+.ai-balk::before {
+  content: ""; position: absolute; inset: -6px; border-radius: 22px; z-index: 0;
+  background: linear-gradient(120deg, #635bff, #22d3ee 45%, #f472b6 80%, #635bff);
+  background-size: 200% 200%; filter: blur(18px); opacity: .35;
+  animation: ai-gloed 9s ease-in-out infinite;
+}
+.ai-balk:focus-within::before { opacity: .6; }
+.ai-balk-binnen {
+  position: relative; z-index: 1; border-radius: 16px; border: 1px solid transparent;
+  background: linear-gradient(var(--wit), var(--wit)) padding-box, linear-gradient(120deg, #635bff, #22d3ee, #f472b6) border-box;
+  box-shadow: 0 10px 30px -12px rgba(99, 91, 255, .35);
+}
+@keyframes ai-gloed { 0%, 100% { background-position: 0% 50%; opacity: .32; } 50% { background-position: 100% 50%; opacity: .5; } }
+
 /* Ronde iconknop in de topbalk. */
 .iconknop {
   display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;

@@ -184,8 +184,8 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, inge
             <details className="menu relative">
               <summary className="knop">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
-                Toevoegen
-                <Chevron className="opacity-80" />
+                <span className="hidden sm:inline">Toevoegen</span>
+                <Chevron className="hidden opacity-80 sm:block" />
               </summary>
               <div className="menu-lijst">
                 {NIEUW.map((n) => <Link key={n.href} href={n.href}><Icoon naam={n.icoon} size={16} className="text-tekst-3" />{n.label}</Link>)}

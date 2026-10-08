@@ -2,19 +2,16 @@ import { connection } from "next/server";
 import Link from "next/link";
 import { db, huidigeOnderneming } from "@/lib/db";
 import { vereisGebruiker } from "@/lib/auth";
-import { btwAangifte, btwDeadline, datumNl, euro, periodeBereik, rond } from "@/lib/btw";
+import { btwDeadline, datumNl, periodeBereik, rond } from "@/lib/btw";
 import { CATEGORIE_INFO } from "@/lib/categorieen";
 import { huidigTijdvak } from "@/lib/assistent/tools";
 import { statusPil, statusTekst } from "@/lib/facturen/status";
 import { Bedrag, Kaart, Kop, Pil } from "@/components/ui";
-import { Icoon, type IcoonNaam } from "@/components/Iconen";
 import { BankIcoon, DocumentIcoon } from "@/components/BankIcoon";
 import { OmzetGrafiek } from "@/components/OmzetGrafiek";
 import { EersteStappen } from "@/components/EersteStappen";
 
 export const instant = false;
-
-type Rij = { icoon: IcoonNaam; kleur: "primair" | "geel" | "grijs"; label: string; extra?: string; waarde: string; href: string };
 
 /** Infobalk bovenaan: één regel die om een actie vraagt, met een pijl ernaartoe. */
 function Infobalk({ tekst, href }: { tekst: string; href: string }) {
@@ -31,26 +28,24 @@ function Chevron() {
   return <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 text-tekst-3" aria-hidden><path d="M9 6l6 6-6 6" /></svg>;
 }
 
-/** Samenvattingskaart: titel met twee of drie rijen, elk met gekleurd icoon, label, waarde en pijl. */
-function Samenvatting({ titel, rijen }: { titel: string; rijen: Rij[] }) {
-  const kleur = { primair: "bg-primair text-white", geel: "bg-mosterd text-white", grijs: "bg-lijn text-tekst-2" };
+/** Grote vraagbalk voor de bot met een zachte gloed. Een vraag gaat naar de assistent, die meteen antwoordt. */
+function AiBalk() {
+  const voorbeelden = ["Hoeveel btw moet ik dit kwartaal betalen?", "Welke facturen staan open?", "Wat was mijn grootste kostenpost vorige maand?"];
   return (
-    <section className="kaart">
-      <h2 className="border-b border-lijn px-5 py-3 text-[15px] font-semibold">{titel}</h2>
-      <ul className="divide-y divide-lijn">
-        {rijen.map((r) => (
-          <li key={r.label}>
-            <Link href={r.href} className="flex items-center gap-3 px-5 py-3 hover:bg-[#fafbfc]">
-              <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${kleur[r.kleur]}`}><Icoon naam={r.icoon} size={16} /></span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-[13px] text-tekst-2">{r.label}{r.extra && <span className="text-tekst-3"> — {r.extra}</span>}</span>
-                <span className="cijfer block text-[15px] font-semibold">{r.waarde}</span>
-              </span>
-              <Chevron />
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <section className="ai-balk" aria-label="Vraag het de bot">
+      <div className="ai-balk-binnen">
+        <form action="/app/assistent" method="get" className="flex items-center gap-3 px-4 py-3 sm:px-5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primair-licht text-primair" aria-hidden>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z" /><path d="M19 14l.9 2.6L22.5 17.5l-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9L19 14z" opacity=".7" /><path d="M5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8-1.8-.7 1.8-.7L5 15z" opacity=".5" /></svg>
+          </span>
+          <input name="q" required autoComplete="off" placeholder="Vraag het de bot over je boekhouding, bijvoorbeeld: hoe sta ik ervoor deze maand?" aria-label="Je vraag aan de bot" className="min-w-0 flex-1 bg-transparent text-[16px] text-tekst outline-none placeholder:text-tekst-3" />
+          <button type="submit" className="knop knop-groot">Vraag</button>
+        </form>
+        <div className="flex flex-wrap items-center gap-2 border-t border-lijn px-4 py-2.5 sm:px-5">
+          <span className="text-[12px] font-medium uppercase tracking-[.04em] text-tekst-3">Bijvoorbeeld</span>
+          {voorbeelden.map((v) => <Link key={v} href={`/app/assistent?q=${encodeURIComponent(v)}`} className="chip">{v}</Link>)}
+        </div>
+      </div>
     </section>
   );
 }
@@ -63,18 +58,15 @@ export default async function Overzicht() {
   const nu = new Date();
   const jaar = nu.getFullYear();
   const tv = huidigTijdvak(o.btwTijdvak);
-  const { start, eind } = periodeBereik(o.btwTijdvak, tv.jaar, tv.periode || 1);
+  const { eind } = periodeBereik(o.btwTijdvak, tv.jaar, tv.periode || 1);
   const twaalfTerug = new Date(nu.getFullYear(), nu.getMonth() - 11, 1);
 
-  const [regels, tijdvakRegels, twijfelTotaal, onbeoordeeld, openFacturen, bonnenLos, bonnenNieuw, rekeningen, taken, recentBank, recentFacturen, aantalTransacties, aantalBonnen, aantalFacturen, aantalKoppelingen] = await Promise.all([
+  const [regels, twijfelTotaal, onbeoordeeld, openFacturen, bonnenLos, taken, recentBank, recentFacturen, aantalTransacties, aantalBonnen, aantalFacturen, aantalKoppelingen] = await Promise.all([
     db.transactie.findMany({ where: { ondernemingId: o.id, zakelijk: true, datum: { gte: new Date(Math.min(twaalfTerug.getTime(), new Date(jaar, 0, 1).getTime())) } } }),
-    db.transactie.findMany({ where: { ondernemingId: o.id, datum: { gte: start, lt: eind } } }),
     db.transactie.count({ where: { ondernemingId: o.id, bevestigd: false, zakelijk: { not: null } } }),
     db.transactie.count({ where: { ondernemingId: o.id, zakelijk: null } }),
     db.factuur.findMany({ where: { ondernemingId: o.id, status: { in: ["verzonden", "herinnerd", "aangemaand"] } }, select: { totaal: true, betaaldBedrag: true, vervaldatum: true } }),
     db.bon.count({ where: { ondernemingId: o.id, status: "uitgelezen" } }),
-    db.bon.count({ where: { ondernemingId: o.id, status: "nieuw" } }),
-    db.bankrekening.findMany({ where: { ondernemingId: o.id } }),
     db.taak.findMany({ where: { ondernemingId: o.id, klaar: false }, orderBy: [{ deadline: "asc" }, { aangemaakt: "desc" }], take: 2 }),
     db.transactie.findMany({ where: { ondernemingId: o.id }, orderBy: { datum: "desc" }, take: 8, include: { bankrekening: { select: { bank: true, iban: true } } } }),
     db.factuur.findMany({ where: { ondernemingId: o.id, status: { in: ["verzonden", "herinnerd", "aangemaand", "betaald"] } }, orderBy: { datum: "desc" }, take: 5, include: { klant: { select: { naam: true } } } }),
@@ -89,11 +81,8 @@ export default async function Overzicht() {
     const s = t.categorie && t.categorie in CATEGORIE_INFO ? CATEGORIE_INFO[t.categorie as keyof typeof CATEGORIE_INFO].soort : "kosten";
     return s === "omzet" || s === "kosten";
   };
-  const aangifte = btwAangifte(tijdvakRegels);
   const deadline = btwDeadline(eind);
   const dagenTotDeadline = Math.ceil((deadline.getTime() - nu.getTime()) / 864e5);
-  const saldo = rekeningen.reduce((s, r) => s + (r.saldo ?? 0), 0);
-  const openBedrag = rond(openFacturen.reduce((s, f) => s + f.totaal - f.betaaldBedrag, 0));
   const teLaat = openFacturen.filter((f) => f.vervaldatum < nu);
   const tijdvakNaam = o.btwTijdvak === "maand" ? `maand ${tv.periode}` : o.btwTijdvak === "jaar" ? `${tv.jaar}` : `${tv.periode}e kwartaal`;
 
@@ -156,24 +145,11 @@ export default async function Overzicht() {
 
       {balken.length > 0 && (
         <div className="mb-6 space-y-2">
-          {balken.slice(0, 5).map((b) => <Infobalk key={b.href + b.tekst} tekst={b.tekst} href={b.href} />)}
+          {balken.slice(0, 2).map((b) => <Infobalk key={b.href + b.tekst} tekst={b.tekst} href={b.href} />)}
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Samenvatting titel="Bank" rijen={[
-          { icoon: "bank", kleur: "primair", label: "Saldo", extra: rekeningen.length > 1 ? `${rekeningen.length} rekeningen` : undefined, waarde: rekeningen.some((r) => r.saldo != null) ? euro(saldo) : "–", href: "/app/bank/rekeningen" },
-          { icoon: "bot", kleur: twijfelTotaal + onbeoordeeld > 0 ? "geel" : "grijs", label: "Te beantwoorden", waarde: String(twijfelTotaal + onbeoordeeld), href: twijfelTotaal > 0 ? "/app/bank?filter=twijfel" : "/app/bank?filter=open" },
-        ]} />
-        <Samenvatting titel="Facturen" rijen={[
-          { icoon: "factuur", kleur: "primair", label: "Te ontvangen", extra: String(openFacturen.length), waarde: euro(openBedrag), href: "/app/facturen?filter=open" },
-          { icoon: "bel", kleur: teLaat.length > 0 ? "geel" : "grijs", label: "Te herinneren", waarde: String(teLaat.length), href: "/app/facturen?filter=telaat" },
-        ]} />
-        <Samenvatting titel="Bonnen en btw" rijen={[
-          { icoon: "btw", kleur: "primair", label: `Btw ${tijdvakNaam}`, extra: aangifte["5c_te_betalen"] >= 0 ? "te betalen" : "terug", waarde: euro(Math.abs(aangifte["5c_te_betalen"])), href: "/app/btw" },
-          { icoon: "bon", kleur: bonnenLos + bonnenNieuw > 0 ? "geel" : "grijs", label: "Te verwerken", waarde: String(bonnenLos + bonnenNieuw), href: "/app/bonnen?status=uitgelezen" },
-        ]} />
-      </div>
+      <AiBalk />
 
       <h2 className="mb-3 mt-8 text-[17px] font-semibold">Recent verwerkt</h2>
       {recent.length === 0 ? (
