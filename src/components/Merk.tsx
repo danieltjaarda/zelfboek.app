@@ -1,12 +1,11 @@
 import { MERK } from "@/lib/merk";
 
-/** Beeldmerk: een open boek dat zichzelf afvinkt. */
+/** Beeldmerk: afgerond vierkant in de merkkleur met een wit vinkje. Op een donkere ondergrond wit met blauw vinkje. */
 export function Beeldmerk({ size = 28, donker = false }: { size?: number; donker?: boolean }) {
-  const kleur = donker ? "#ffffff" : "#16130f"; // vaste merkkleuren, los van het app-thema
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden>
-      <rect x="2" y="4" width="28" height="24" rx="6" fill={kleur} />
-      <path d="M9 16.5l4.5 4.5L23 11.5" fill="none" stroke="#e8b931" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="2" y="2" width="28" height="28" rx="8" fill={donker ? "#ffffff" : "var(--primair)"} />
+      <path d="M9.5 16.5l4.5 4.5L22.5 11.5" fill="none" stroke={donker ? "var(--primair)" : "#ffffff"} strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -15,7 +14,7 @@ export function Woordmerk({ donker = false, size = 20 }: { donker?: boolean; siz
   return (
     <span className="inline-flex items-center gap-2">
       <Beeldmerk size={size + 8} donker={donker} />
-      <span className="display font-semibold tracking-tight" style={{ fontSize: size, color: donker ? "#fff" : "var(--tekst)" }}>{MERK}</span>
+      <span className="font-semibold tracking-[-0.02em]" style={{ fontSize: size, color: donker ? "#fff" : "var(--tekst)" }}>{MERK}</span>
     </span>
   );
 }

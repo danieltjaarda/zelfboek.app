@@ -35,8 +35,8 @@ function AiBalk() {
     <section className="ai-balk" aria-label="Vraag het de bot">
       <div className="ai-balk-binnen">
         <form action="/app/assistent" method="get" className="flex items-center gap-3 px-4 py-3 sm:px-5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primair-licht text-primair" aria-hidden>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z" /><path d="M19 14l.9 2.6L22.5 17.5l-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9L19 14z" opacity=".7" /><path d="M5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8-1.8-.7 1.8-.7L5 15z" opacity=".5" /></svg>
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center text-primair" aria-hidden>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8L12 2z" /><path d="M19 14l.9 2.6L22.5 17.5l-2.6.9L19 21l-.9-2.6-2.6-.9 2.6-.9L19 14z" opacity=".7" /><path d="M5 15l.7 1.8 1.8.7-1.8.7L5 20l-.7-1.8-1.8-.7 1.8-.7L5 15z" opacity=".5" /></svg>
           </span>
           <input name="q" required autoComplete="off" placeholder="Vraag het de bot over je boekhouding, bijvoorbeeld: hoe sta ik ervoor deze maand?" aria-label="Je vraag aan de bot" className="min-w-0 flex-1 bg-transparent text-[16px] text-tekst outline-none placeholder:text-tekst-3" />
           <button type="submit" className="knop knop-groot">Vraag</button>
