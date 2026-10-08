@@ -131,37 +131,73 @@ label.lbl { display: block; font-size: 14px; color: var(--tekst-2); margin-botto
   main { padding: 0 !important; }
 }
 
-/* Eén georkestreerde animatie op de homepage: het nachtlog dat regel voor regel verschijnt en herhaalt. */
-@keyframes nachtlog-regel {
-  0% { opacity: 0; transform: translateY(6px); }
-  6% { opacity: 1; transform: translateY(0); }
-  88% { opacity: 1; transform: translateY(0); }
-  94%, 100% { opacity: 0; transform: translateY(-4px); }
+/* ── Homepage: kasboekpapier ─────────────────────────────────────────────
+   Liniëring elke 36px, en een rode kantlijn zoals in een echt kasboek. */
+.kasboek {
+  background-color: var(--papier);
+  background-image:
+    repeating-linear-gradient(to bottom, transparent 0 35px, rgba(19,32,26,.085) 35px 36px);
+  background-attachment: local;
 }
-@keyframes nachtlog-vink {
-  0%, 4% { stroke-dashoffset: 24; }
-  10%, 100% { stroke-dashoffset: 0; }
+.kasboek-marge { position: relative; padding-left: 28px; }
+.kasboek-marge::before {
+  content: ""; position: absolute; left: 0; top: -18px; bottom: -18px; width: 1px;
+  background: rgba(195,61,46,.45);
 }
-@keyframes nachtlog-balk {
-  0% { width: 0; }
-  80%, 100% { width: 100%; }
+@media (min-width: 768px) { .kasboek-marge { padding-left: 36px; } }
+
+/* Het bonnetje: wit, smalle kolom, geperforeerde onderkant, één keer uitgedraaid. */
+.bon {
+  position: relative; margin: 0 auto; width: min(100%, 380px);
+  background: #fff; color: var(--tekst); padding: 26px 26px 22px; font-size: 14px;
+  transform: rotate(-1.4deg);
+  box-shadow: 0 30px 50px -30px rgba(19,32,26,.5), 0 1px 0 rgba(0,0,0,.04);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px),
+    97.5% 100%, 95% calc(100% - 7px), 92.5% 100%, 90% calc(100% - 7px), 87.5% 100%, 85% calc(100% - 7px), 82.5% 100%, 80% calc(100% - 7px), 77.5% 100%, 75% calc(100% - 7px), 72.5% 100%, 70% calc(100% - 7px), 67.5% 100%, 65% calc(100% - 7px), 62.5% 100%, 60% calc(100% - 7px), 57.5% 100%, 55% calc(100% - 7px), 52.5% 100%, 50% calc(100% - 7px), 47.5% 100%, 45% calc(100% - 7px), 42.5% 100%, 40% calc(100% - 7px), 37.5% 100%, 35% calc(100% - 7px), 32.5% 100%, 30% calc(100% - 7px), 27.5% 100%, 25% calc(100% - 7px), 22.5% 100%, 20% calc(100% - 7px), 17.5% 100%, 15% calc(100% - 7px), 12.5% 100%, 10% calc(100% - 7px), 7.5% 100%, 5% calc(100% - 7px), 2.5% 100%, 0 calc(100% - 7px));
+  padding-bottom: 30px;
 }
-.nachtlog-regel { animation: nachtlog-regel 14s ease-in-out infinite both; }
-.nachtlog-vink { stroke-dasharray: 24; animation: nachtlog-vink 14s ease-out infinite both; }
-.nachtlog-balk { animation: nachtlog-balk 14s linear infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .nachtlog-regel, .nachtlog-vink, .nachtlog-balk { animation: none; opacity: 1; stroke-dashoffset: 0; width: 100%; }
-}
+.bon-kop { text-align: center; padding-bottom: 14px; border-bottom: 1px dashed var(--lijn-2); }
+.bon-regels { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; }
+.bon-regel { display: flex; align-items: baseline; gap: 8px; }
+.bon-leader { flex: 1; border-bottom: 1px dotted var(--lijn-2); transform: translateY(-4px); min-width: 12px; }
+.bon-totaal { margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--lijn-2); font-weight: 600; font-size: 16px; }
+@keyframes bon-uitdraai { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.bon-regel { opacity: 0; animation: bon-uitdraai .5s ease-out forwards; }
+@media (prefers-reduced-motion: reduce) { .bon-regel { opacity: 1; animation: none; } .bon { transform: none; } }
+
+/* Logo's op één regel, rustig. */
+.logo-stil { color: var(--tekst-2); }
+.logo-stil img { filter: grayscale(1); opacity: .8; }
+
+/* Etmaal: tijd in de kantlijn, inhoud erachter, één doorlopende lijn. */
+.dag-moment { display: grid; grid-template-columns: 72px 1fr; gap: 0 20px; padding: 22px 0 26px; border-top: 1px solid var(--lijn-2); }
+.dag-tijd { font-family: var(--font-display), sans-serif; font-variant-numeric: tabular-nums; font-size: 18px; font-weight: 600; letter-spacing: -0.01em; padding-top: 22px; }
+@media (min-width: 768px) { .dag-moment { grid-template-columns: 120px 1fr; gap: 0 36px; } .dag-tijd { font-size: 22px; } }
+
+/* Mini-scherm: één wit vlak, regels als in de app, zonder pillen. */
+.mini { background: #fff; border: 1px solid var(--lijn); border-radius: 10px; font-size: 14px; overflow: hidden; }
+.mini-rij { display: flex; align-items: center; gap: 12px; padding: 9px 14px; border-bottom: 1px solid var(--lijn); }
+.mini-rij:last-child { border-bottom: 0; }
+
+/* Som zoals onder aan een bon. */
+.som-rij { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 10px 0; border-bottom: 1px dotted var(--lijn-2); font-size: 16px; }
+.som-rij dt { color: var(--tekst-2); }
+.som-totaal { border-bottom: 0; border-top: 2px solid var(--inkt); margin-top: 6px; padding-top: 14px; }
+.som-totaal dt { color: var(--tekst); font-weight: 500; }
+
+/* Vragen: open en dicht, zonder extra chrome. */
+.vraag { border-bottom: 1px solid var(--lijn-2); }
+.vraag summary { cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 16px; padding: 16px 0; font-weight: 600; font-size: 17px; }
+.vraag summary::-webkit-details-marker { display: none; }
+.vraag summary::after { content: "+"; color: var(--tekst-3); font-weight: 400; font-size: 22px; line-height: 1; }
+.vraag[open] summary::after { content: "–"; }
+.vraag p { padding: 0 0 18px; max-width: 60ch; color: var(--tekst-2); font-size: 16px; line-height: 1.55; }
 
 /* Browser-raam om een echt scherm van de app heen. */
 .raam { border-radius: 14px; overflow: hidden; border: 1px solid var(--lijn-2); background: #fff; box-shadow: 0 40px 80px -40px rgba(19,32,26,.45), 0 1px 0 rgba(0,0,0,.03); }
 .raam-balk { display: flex; align-items: center; gap: 6px; padding: 10px 14px; background: #eef1ec; border-bottom: 1px solid var(--lijn); }
 .raam-balk i { width: 10px; height: 10px; border-radius: 50%; background: var(--lijn-2); display: block; }
 .raam-balk span { margin-left: 10px; flex: 1; height: 20px; border-radius: 6px; background: #fff; font-size: 11px; color: var(--tekst-3); display: flex; align-items: center; padding: 0 10px; }
-
-/* Logowand */
-.logo-tegel { display: flex; align-items: center; justify-content: center; gap: 12px; padding: 0 12px; background: #fff; border: 1px solid var(--lijn); border-radius: 12px; height: 72px; font-size: 15px; font-weight: 500; }
-.logo-tegel img { opacity: 1; }
 
 /* Vertrouwensstrook */
 .trust { display: flex; flex-wrap: wrap; gap: 12px 24px; font-size: 15px; color: var(--tekst-2); }
