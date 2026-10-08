@@ -134,6 +134,21 @@ export default async function Overzicht() {
     }),
   ].sort((a, b) => b.datum.getTime() - a.datum.getTime()).slice(0, 9);
 
+  // Nieuw account: laat zien hoe de lijst eruit gaat zien, met voorbeeldregels die nergens geboekt worden.
+  const toonVoorbeeld = recent.length === 0 && aantalTransacties === 0 && aantalFacturen === 0;
+  const dag = (n: number) => new Date(nu.getTime() - n * 864e5);
+  const ING = "NL69INGB0001234567", REVO = "NL39REVO0012345678";
+  const voorbeeld: Recent[] = [
+    { id: "v1", datum: dag(0), titel: "Albert Heijn", sub: "Boodschappen · Kan privé zijn: geen zakelijk kenmerk in de omschrijving.", pil: "geel", status: "Twijfel", bedrag: -42.5, href: "/app/koppelingen", bank: "ING", iban: ING },
+    { id: "v2", datum: dag(1), titel: "Bakkerij De Korst · NL11RABO0163331561", sub: "Factuur 2026-0031 · Betaling van een klant op een verzonden factuur.", pil: "groen", status: "Geboekt", bedrag: 2722.5, href: "/app/koppelingen", bank: "ING", iban: ING },
+    { id: "v3", datum: dag(1), titel: "Bakkerij De Korst · 2026-0031", sub: "Ontwerp en bouw website", pil: "groen", status: "Betaald", bedrag: 2722.5, href: "/app/facturen/nieuw", factuur: true },
+    { id: "v4", datum: dag(2), titel: "Google Ireland", sub: "Google Workspace · Vast softwareabonnement, btw verlegd (EU-dienst).", pil: "groen", status: "Geboekt", bedrag: -14, href: "/app/koppelingen", bank: "Revolut", iban: REVO },
+    { id: "v5", datum: dag(3), titel: "KPN", sub: "Zakelijk internet en mobiel · Vaste zakelijke telecomkosten.", pil: "groen", status: "Geboekt", bedrag: -58, href: "/app/koppelingen", bank: "ING", iban: ING },
+    { id: "v6", datum: dag(4), titel: "Fysio Centrum Zuid · 2026-0032", sub: "Huisstijl en drukwerk", pil: "grijs", status: "Open", bedrag: 1815, href: "/app/facturen/nieuw", factuur: true },
+    { id: "v7", datum: dag(5), titel: "NS Zakelijk", sub: "Treinreizen · Reiskosten OV, laag tarief.", pil: "groen", status: "Geboekt", bedrag: -27.4, href: "/app/koppelingen", bank: "ING", iban: ING },
+  ];
+  const lijst = toonVoorbeeld ? voorbeeld : recent;
+
   const uur = nu.getHours();
   const groet = uur < 12 ? "Goedemorgen" : uur < 18 ? "Goedemiddag" : "Goedenavond";
   const naam = sessie.gebruiker.naam?.split(" ")[0] || o.naam;
@@ -151,12 +166,15 @@ export default async function Overzicht() {
 
       <AiBalk />
 
-      <h2 className="mb-3 mt-8 text-[17px] font-semibold">Recent verwerkt</h2>
-      {recent.length === 0 ? (
+      <div className="mb-3 mt-8 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <h2 className="text-[17px] font-semibold">Recent verwerkt</h2>
+        {toonVoorbeeld && <span className="text-[13px] text-tekst-3"><Pil kleur="grijs">Voorbeeld</Pil> <span className="ml-1">Zo ziet het eruit zodra je bank gekoppeld is. Dit zijn geen echte boekingen.</span></span>}
+      </div>
+      {lijst.length === 0 ? (
         <p className="kaart px-5 py-8 text-center text-sm text-tekst-2">Nog niets verwerkt. Zodra er bankregels of facturen zijn, zie je ze hier.</p>
       ) : (
         <ul className="kaart divide-y divide-lijn">
-          {recent.map((r) => (
+          {lijst.map((r) => (
             <li key={r.id}>
               <Link href={r.href} className="flex items-center gap-4 px-4 py-3 hover:bg-[#fafbfc]">
                 {r.factuur ? <DocumentIcoon /> : <BankIcoon bank={r.bank} iban={r.iban} />}
