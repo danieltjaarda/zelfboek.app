@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Beeldmerk, Woordmerk } from "@/components/Merk";
 import { Icoon, type IcoonNaam } from "@/components/Iconen";
+import { BotSpotlight } from "@/components/BotSpotlight";
 
 type Kind = { href: string; label: string };
 type Item = { href?: string; label: string; icoon: IcoonNaam; teller?: number; kinderen?: Kind[] };
@@ -158,6 +159,7 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, inge
         </nav>
 
         <div className="shrink-0 border-t border-lijn p-2">
+          <BotSpotlight dicht={dicht} verborgen={pad === "/app"} />
           <Link href="/app/instellingen?tab=abonnement" onClick={sluit} className={`block px-2 pb-1 text-[12px] text-tekst-3 ${status.toegang ? "hover:text-tekst" : "font-semibold text-rood-tekst"} ${verborgen}`}>{status.tekst}</Link>
           <button type="button" onClick={toggleDicht} aria-pressed={dicht} className={`nav-item hidden w-full text-tekst-2 md:flex ${dicht ? "md:justify-center md:px-0" : ""}`} title={dicht ? "Uitklappen" : "Inklappen"}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 transition-transform ${dicht ? "rotate-180" : ""}`} aria-hidden><path d="M11 17l-5-5 5-5" /><path d="M18 17l-5-5 5-5" /></svg>
