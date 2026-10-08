@@ -243,6 +243,14 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 }
 .bot-paneel.uit { animation: bot-paneel-uit .2s ease-in both; pointer-events: none; }
 
+/* App-tegels en de dialoog erachter. */
+.app-tegel { transition: box-shadow .15s, border-color .15s; }
+.app-tegel:hover { border-color: #c9d1da; box-shadow: 0 4px 14px -6px rgba(26, 31, 54, 0.18); }
+@keyframes dialoog-in { from { opacity: 0; transform: translateY(10px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes dialoog-uit { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(8px) scale(.98); } }
+.dialoog { animation: dialoog-in .24s cubic-bezier(.2, .8, .2, 1) both; box-shadow: 0 24px 60px -20px rgba(26, 31, 54, 0.45), 0 0 0 1px rgba(26, 31, 54, 0.06); }
+.dialoog.uit { animation: dialoog-uit .18s ease-in both; pointer-events: none; }
+
 /* Ronde iconknop in de topbalk. */
 .iconknop {
   display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px;
