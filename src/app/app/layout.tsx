@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { abonnementStatus, huidigeOnderneming, logUit, vereisGebruiker, wisselOnderneming } from "@/lib/auth";
 import { Schil } from "@/components/Schil";
@@ -10,6 +11,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const sessie = await vereisGebruiker();
   const o = await huidigeOnderneming();
   const status = abonnementStatus(o);
+  const ingeklapt = (await cookies()).get("zb_zijbalk")?.value === "1";
   const [ondernemingen, ongelezen, twijfel] = await Promise.all([
     db.lidmaatschap.findMany({ where: { gebruikerId: sessie.gebruikerId }, include: { onderneming: true } }),
     db.melding.count({ where: { ondernemingId: o.id, gelezen: false } }),
@@ -34,6 +36,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       email={sessie.gebruiker.email}
       status={status}
       tellers={{ meldingen: ongelezen, bank: twijfel }}
+      ingeklapt={ingeklapt}
       uitloggen={uitloggen}
       wissel={wissel}
     >

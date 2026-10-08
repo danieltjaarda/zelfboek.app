@@ -168,16 +168,21 @@ label.lbl { display: block; font-size: 13px; font-weight: 500; color: var(--teks
 .pil-rood { background: var(--rood-licht); color: var(--rood-tekst); }
 .pil-grijs { background: #ebeef1; color: var(--tekst-2); }
 
-/* Navigatie in de zijbalk. */
+/* Navigatie in de zijbalk: compacte regels, de actieve gevuld in de merkkleur, subitems ingesprongen. */
 .nav-item {
-  display: flex; align-items: center; gap: 10px; border-radius: var(--radius-s); padding: 6px 8px;
-  font-size: 14px; font-weight: 500; color: var(--tekst-2); white-space: nowrap;
+  display: flex; align-items: center; gap: 10px; border-radius: 6px; padding: 0 10px; min-height: 32px;
+  font-size: 14px; font-weight: 500; color: var(--tekst); white-space: nowrap;
 }
-.nav-item:hover { background: var(--papier); color: var(--tekst); }
-.nav-item-actief, .nav-item-actief:hover { background: var(--primair-licht); color: var(--primair-tekst); }
-.nav-item svg { color: var(--tekst-3); }
-.nav-item:hover svg { color: var(--tekst-2); }
-.nav-item-actief svg, .nav-item-actief:hover svg { color: var(--primair); }
+.nav-item:hover { background: var(--papier); }
+.nav-item-actief, .nav-item-actief:hover { background: var(--primair); color: #fff; }
+.nav-item svg { color: var(--tekst-2); }
+.nav-item-actief svg, .nav-item-actief:hover svg { color: #fff; }
+.nav-sub { padding-left: 38px; min-height: 30px; font-size: 13px; color: var(--tekst-2); }
+.nav-sub.nav-item-actief { color: #fff; }
+.nav-chevron { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 4px; color: var(--tekst-3); cursor: pointer; }
+.nav-chevron:hover { background: rgba(26, 31, 54, 0.06); color: var(--tekst); }
+.nav-item-actief .nav-chevron { color: rgba(255, 255, 255, 0.8); }
+.nav-item-actief .nav-chevron:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
 
 /* Uitklapmenu in de topbalk, op basis van <details>. */
 .menu > summary { list-style: none; cursor: pointer; }

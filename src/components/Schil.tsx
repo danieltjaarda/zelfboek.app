@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Woordmerk } from "@/components/Merk";
+import { Beeldmerk, Woordmerk } from "@/components/Merk";
 import { Icoon, type IcoonNaam } from "@/components/Iconen";
 
-type Item = { href: string; label: string; icoon: IcoonNaam; teller?: number };
-type Groep = { kop: string; items: Item[] };
+type Kind = { href: string; label: string };
+type Item = { href?: string; label: string; icoon: IcoonNaam; teller?: number; kinderen?: Kind[] };
 
 type Props = {
   onderneming: { id: string; naam: string };
@@ -15,6 +15,7 @@ type Props = {
   email: string;
   status: { toegang: boolean; tekst: string };
   tellers: { meldingen: number; bank: number };
+  ingeklapt: boolean;
   uitloggen: () => Promise<void>;
   wissel: (fd: FormData) => Promise<void>;
   children: React.ReactNode;
@@ -28,13 +29,23 @@ const NIEUW: { href: string; label: string; icoon: IcoonNaam }[] = [
   { href: "/app/uren", label: "Uren", icoon: "uren" },
 ];
 
-/** De schil van de app: lichte zijbalk links, topbalk met zoeken en snelle acties, inhoud rechts. */
-export function Schil({ onderneming, ondernemingen, email, status, tellers, uitloggen, wissel, children }: Props) {
+function Chevron({ open, className = "" }: { open?: boolean; className?: string }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 transition-transform ${open ? "rotate-180" : ""} ${className}`} aria-hidden>
+      <path d="M6 9l6 6 6-6" />
+    </svg>
+  );
+}
+
+/** De schil van de app: compacte zijbalk links (in te klappen), topbalk met zoeken en snelle acties, inhoud rechts. */
+export function Schil({ onderneming, ondernemingen, email, status, tellers, ingeklapt, uitloggen, wissel, children }: Props) {
   const pad = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [dicht, setDicht] = useState(ingeklapt);
+  const [handmatig, setHandmatig] = useState<Record<string, boolean>>({});
   const zoekveld = useRef<HTMLInputElement>(null);
 
-  // "/" zet de cursor in het zoekveld; uitklapmenu's sluiten bij klik ernaast.
+  // "/" zet de cursor in het zoekveld; uitklapmenu's in de topbalk sluiten bij een klik ernaast.
   useEffect(() => {
     const toets = (e: KeyboardEvent) => {
       const doel = e.target as HTMLElement | null;
@@ -49,55 +60,53 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, uitl
     return () => { document.removeEventListener("keydown", toets); document.removeEventListener("click", klik); };
   }, []);
 
-  const groepen: Groep[] = [
-    { kop: "Vandaag", items: [
-      { href: "/app", label: "Overzicht", icoon: "overzicht" },
-      { href: "/app/bank", label: "Bank", icoon: "bank", teller: tellers.bank },
-      { href: "/app/bonnen", label: "Bonnen", icoon: "bon" },
-      { href: "/app/assistent", label: "Vraag het de bot", icoon: "bot" },
-    ] },
-    { kop: "Verkoop", items: [
-      { href: "/app/facturen", label: "Facturen", icoon: "factuur" },
-      { href: "/app/offertes", label: "Offertes", icoon: "offerte" },
-      { href: "/app/klanten", label: "Klanten", icoon: "klanten" },
-      { href: "/app/uren", label: "Uren", icoon: "uren" },
-      { href: "/app/kilometers", label: "Kilometers", icoon: "km" },
-    ] },
-    { kop: "Belasting", items: [
-      { href: "/app/btw", label: "Btw-aangifte", icoon: "btw" },
-      { href: "/app/ib", label: "Inkomstenbelasting", icoon: "ib" },
-      { href: "/app/activa", label: "Investeringen", icoon: "activa" },
-      { href: "/app/jaarrekening", label: "Jaarrekening", icoon: "jaar" },
-      { href: "/app/exports", label: "Exporteren", icoon: "export" },
-    ] },
-    { kop: "Instellen", items: [
-      { href: "/app/koppelingen", label: "Koppelingen", icoon: "koppel" },
-      { href: "/app/importeren", label: "Overstappen", icoon: "import" },
-      { href: "/app/instellingen", label: "Instellingen", icoon: "instel" },
-    ] },
+  const items: Item[] = [
+    { href: "/app", label: "Overzicht", icoon: "overzicht" },
+    { href: "/app/facturen", label: "Facturen", icoon: "factuur", kinderen: [{ href: "/app/terugkerend", label: "Terugkerend" }, { href: "/app/producten", label: "Producten" }] },
+    { href: "/app/bonnen", label: "Bonnen", icoon: "bon" },
+    { href: "/app/offertes", label: "Offertes", icoon: "offerte" },
+    { href: "/app/bank", label: "Bank", icoon: "bank", teller: tellers.bank, kinderen: [{ href: "/app/bank/rekeningen", label: "Rekeningen" }, { href: "/app/koppelingen", label: "Koppelingen" }] },
+    { href: "/app/uren", label: "Uren", icoon: "uren", kinderen: [{ href: "/app/kilometers", label: "Kilometers" }] },
+    { href: "/app/klanten", label: "Klanten", icoon: "klanten" },
+    { href: "/app/btw", label: "Btw-aangifte", icoon: "btw" },
+    { label: "Rapporten", icoon: "ib", kinderen: [{ href: "/app/ib", label: "Inkomstenbelasting" }, { href: "/app/jaarrekening", label: "Jaarrekening" }, { href: "/app/exports", label: "Exporteren" }] },
+    { href: "/app/activa", label: "Investeringen", icoon: "activa" },
+    { href: "/app/meldingen", label: "Taken", icoon: "bel", teller: tellers.meldingen },
+    { href: "/app/assistent", label: "Vraag het de bot", icoon: "bot" },
+    { href: "/app/instellingen", label: "Instellingen", icoon: "instel", kinderen: [{ href: "/app/importeren", label: "Overstappen" }] },
   ];
-  const actief = (href: string) => (href === "/app" ? pad === "/app" : pad.startsWith(href));
+
+  // De meest specifieke route wint, zodat /app/bank/rekeningen bij Rekeningen hoort en niet bij Bank.
+  const routes = items.flatMap((i) => [i.href, ...(i.kinderen ?? []).map((k) => k.href)]).filter((h): h is string => Boolean(h));
+  const beste = routes.filter((h) => (h === "/app" ? pad === "/app" : pad === h || pad.startsWith(`${h}/`))).sort((a, b) => b.length - a.length)[0];
+  const actief = (href?: string) => Boolean(href) && href === beste;
+  const groepOpen = (it: Item) => handmatig[it.label] ?? (it.kinderen ?? []).some((k) => actief(k.href));
+  const toggleGroep = (it: Item) => setHandmatig((h) => ({ ...h, [it.label]: !groepOpen(it) }));
+  const toggleDicht = () => {
+    const v = !dicht;
+    setDicht(v);
+    document.cookie = `zb_zijbalk=${v ? 1 : 0}; path=/; max-age=31536000; samesite=lax`;
+  };
+  const sluit = () => setMenuOpen(false);
   const initialen = email.slice(0, 2).toUpperCase();
+  const verborgen = dicht ? "md:hidden" : "";
 
   return (
     <div className="min-h-screen md:flex">
-      {menuOpen && <button type="button" aria-label="Menu sluiten" onClick={() => setMenuOpen(false)} className="fixed inset-0 z-20 bg-inkt/30 md:hidden" />}
+      {menuOpen && <button type="button" aria-label="Menu sluiten" onClick={sluit} className="fixed inset-0 z-20 bg-inkt/30 md:hidden" />}
 
-      <aside className={`${menuOpen ? "flex" : "hidden"} fixed inset-y-0 left-0 z-30 w-[240px] flex-col border-r border-lijn bg-white md:sticky md:top-0 md:flex md:h-screen md:shrink-0`}>
-        <div className="flex h-14 shrink-0 items-center px-5">
-          <Link href="/app" aria-label="Naar het overzicht"><Woordmerk size={16} /></Link>
+      <aside className={`${menuOpen ? "flex" : "hidden"} fixed inset-y-0 left-0 z-30 w-[240px] flex-col border-r border-lijn bg-white md:sticky md:top-0 md:flex md:h-screen md:shrink-0 ${dicht ? "md:w-14" : "md:w-[232px]"}`}>
+        <div className={`flex h-14 shrink-0 items-center px-4 ${dicht ? "md:justify-center md:px-0" : ""}`}>
+          <Link href="/app" aria-label="Naar het overzicht" onClick={sluit}>
+            <span className={verborgen}><Woordmerk size={16} /></span>
+            <span className={dicht ? "hidden md:inline-flex" : "hidden"}><Beeldmerk size={26} /></span>
+          </Link>
         </div>
 
-        <div className="px-3 pb-1">
+        <div className={`px-2 pb-1 ${verborgen}`}>
           {ondernemingen.length > 1 ? (
             <form action={wissel}>
-              <select
-                name="id"
-                defaultValue={onderneming.id}
-                onChange={(e) => e.currentTarget.form?.requestSubmit()}
-                aria-label="Onderneming"
-                className="veld veld-klein font-medium"
-              >
+              <select name="id" defaultValue={onderneming.id} onChange={(e) => e.currentTarget.form?.requestSubmit()} aria-label="Onderneming" className="veld veld-klein font-medium">
                 {ondernemingen.map((x) => <option key={x.id} value={x.id}>{x.naam}</option>)}
               </select>
             </form>
@@ -106,26 +115,54 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, uitl
           )}
         </div>
 
-        <nav id="menu" className="flex-1 overflow-y-auto px-3 pb-3 pt-1">
-          {groepen.map((g) => (
-            <div key={g.kop} className="mb-1">
-              <p className="px-2 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-[.06em] text-tekst-3">{g.kop}</p>
-              {g.items.map((it) => {
-                const a = actief(it.href);
-                return (
-                  <Link key={it.href} href={it.href} aria-current={a ? "page" : undefined} onClick={() => setMenuOpen(false)} className={`nav-item ${a ? "nav-item-actief" : ""}`}>
-                    <Icoon naam={it.icoon} size={18} />
-                    <span className="flex-1 truncate">{it.label}</span>
-                    {it.teller ? <span className="rounded-full bg-mosterd-licht px-1.5 text-[11px] font-semibold leading-[18px] text-mosterd-tekst">{it.teller}</span> : null}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
+        <nav id="menu" className="flex-1 overflow-y-auto px-2 py-1">
+          <ul className="space-y-0.5">
+            {items.map((it) => {
+              const a = actief(it.href);
+              const open = groepOpen(it);
+              const href = it.href ?? it.kinderen?.[0]?.href;
+              const inhoud = (
+                <>
+                  <Icoon naam={it.icoon} size={18} />
+                  <span className={`min-w-0 flex-1 truncate ${verborgen}`}>{it.label}</span>
+                  {it.teller ? <span className={`rounded-full bg-mosterd-licht px-1.5 text-[11px] font-semibold leading-[18px] text-mosterd-tekst ${verborgen}`}>{it.teller}</span> : null}
+                </>
+              );
+              return (
+                <li key={it.label}>
+                  <div className={`nav-item ${a ? "nav-item-actief" : ""} ${dicht ? "md:justify-center md:px-0" : ""}`} title={dicht ? it.label : undefined}>
+                    {it.href || dicht ? (
+                      <Link href={href ?? "/app"} aria-current={a ? "page" : undefined} onClick={sluit} className={`flex min-w-0 flex-1 items-center gap-2.5 ${dicht ? "md:flex-none" : ""}`}>{inhoud}</Link>
+                    ) : (
+                      <button type="button" onClick={() => toggleGroep(it)} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">{inhoud}</button>
+                    )}
+                    {it.kinderen && (
+                      <button type="button" onClick={() => toggleGroep(it)} aria-expanded={open} aria-label={`${it.label} ${open ? "inklappen" : "uitklappen"}`} className={`nav-chevron ${verborgen}`}>
+                        <Chevron open={open} />
+                      </button>
+                    )}
+                  </div>
+                  {it.kinderen && open && (
+                    <ul className={`mt-0.5 space-y-0.5 ${verborgen}`}>
+                      {it.kinderen.map((k) => (
+                        <li key={k.href}>
+                          <Link href={k.href} aria-current={actief(k.href) ? "page" : undefined} onClick={sluit} className={`nav-item nav-sub ${actief(k.href) ? "nav-item-actief" : ""}`}>{k.label}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
-        <div className="shrink-0 border-t border-lijn px-5 py-3 text-[12px] text-tekst-3">
-          <Link href="/app/instellingen?tab=abonnement" className={status.toegang ? "hover:text-tekst" : "font-semibold text-rood-tekst"}>{status.tekst}</Link>
+        <div className="shrink-0 border-t border-lijn p-2">
+          <Link href="/app/instellingen?tab=abonnement" onClick={sluit} className={`block px-2 pb-1 text-[12px] text-tekst-3 ${status.toegang ? "hover:text-tekst" : "font-semibold text-rood-tekst"} ${verborgen}`}>{status.tekst}</Link>
+          <button type="button" onClick={toggleDicht} aria-pressed={dicht} className={`nav-item hidden w-full text-tekst-2 md:flex ${dicht ? "md:justify-center md:px-0" : ""}`} title={dicht ? "Uitklappen" : "Inklappen"}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={`shrink-0 transition-transform ${dicht ? "rotate-180" : ""}`} aria-hidden><path d="M11 17l-5-5 5-5" /><path d="M18 17l-5-5 5-5" /></svg>
+            <span className={verborgen}>Inklappen</span>
+          </button>
         </div>
       </aside>
 
@@ -139,15 +176,7 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, uitl
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-tekst-3" aria-hidden>
               <circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" />
             </svg>
-            <input
-              ref={zoekveld}
-              name="q"
-              type="search"
-              placeholder="Zoek facturen, klanten, bankregels"
-              aria-label="Zoeken"
-              autoComplete="off"
-              className="veld veld-klein border-transparent bg-papier pl-9 pr-9 shadow-none focus:bg-white"
-            />
+            <input ref={zoekveld} name="q" type="search" placeholder="Zoek facturen, klanten, bankregels" aria-label="Zoeken" autoComplete="off" className="veld veld-klein bg-papier pl-9 pr-9 shadow-none focus:bg-white" />
             <kbd className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded border border-lijn-2 bg-white px-1.5 font-sans text-[11px] leading-[16px] text-tekst-3 md:block">/</kbd>
           </form>
 
@@ -155,7 +184,8 @@ export function Schil({ onderneming, ondernemingen, email, status, tellers, uitl
             <details className="menu relative">
               <summary className="knop">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
-                Nieuw
+                Toevoegen
+                <Chevron className="opacity-80" />
               </summary>
               <div className="menu-lijst">
                 {NIEUW.map((n) => <Link key={n.href} href={n.href}><Icoon naam={n.icoon} size={16} className="text-tekst-3" />{n.label}</Link>)}

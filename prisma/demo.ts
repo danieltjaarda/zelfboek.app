@@ -63,11 +63,15 @@ async function main() {
 
   await db.onderneming.update({
     where: { id: oid },
-    data: { naam: "Studio Noord", branche: "webdesign en huisstijl", kvk: "87654321", btwId: "NL003456789B01", btwNummer: "123456789B01", iban: "NL91ABNA0417164300", adres: "Oude Kijk in 't Jatstraat 12", postcode: "9712 EH", plaats: "Groningen", email: "hallo@studionoord.nl", startdatum: new Date(2023, 2, 1) },
+    data: { naam: "Studio Noord", branche: "webdesign en huisstijl", kvk: "87654321", btwId: "NL003456789B01", btwNummer: "123456789B01", iban: "NL69INGB0001234567", adres: "Oude Kijk in 't Jatstraat 12", postcode: "9712 EH", plaats: "Groningen", email: "hallo@studionoord.nl", startdatum: new Date(2023, 2, 1) },
   });
 
   const nu = new Date();
-  const rek = await db.bankrekening.create({ data: { ondernemingId: oid, naam: "Zakelijke rekening", iban: "NL91ABNA0417164300", bank: "ABN AMRO", bron: "csv", laatsteSync: nu, saldo: 8432.17 } });
+  const ing = await db.bankrekening.create({ data: { ondernemingId: oid, naam: "ING Zakelijk", iban: "NL69INGB0001234567", bank: "ING", bron: "csv", laatsteSync: nu, saldo: 8432.17 } });
+  const revolut = await db.bankrekening.create({ data: { ondernemingId: oid, naam: "Revolut Business", iban: "NL39REVO0012345678", bank: "Revolut", bron: "csv", laatsteSync: nu, saldo: 2140.55 } });
+  const rek = ing;
+  // Buitenlandse software en de Duitse klant lopen via Revolut, de rest via ING.
+  const IBANS: Record<string, string> = { "Bakkerij De Korst": "NL11RABO0163331561", "Fysio Centrum Zuid": "NL91ABNA0846847140", "Studio Lente": "NL27INGB0109741897", "Vereniging Dorpshuis": "NL45TRIO0212345678", "Weber GmbH": "DE89370400440532013000", "KPN": "NL10INGB0000000421", "Coolblue": "NL86INGB0002445588", "Belastingdienst": "NL86INGB0002445588" };
   const klanten = await Promise.all(KLANTEN.map((k) => db.klant.create({ data: { ondernemingId: oid, ...k } })));
 
   // Twaalf maanden bankregels: per maand twee of drie ontvangsten, zes tot negen kosten.
@@ -82,7 +86,7 @@ async function main() {
       const excl = bedrag2(850 + rnd() * 2400);
       const eu = k.land === "DE";
       const btw = eu ? 0 : bedrag2(excl * 0.21);
-      regels.push({ ondernemingId: oid, bankrekeningId: rek.id, datum: new Date(jaar, maand, 3 + Math.floor(rnd() * 20)), bedrag: bedrag2(excl + btw), tegenpartij: k.naam, omschrijving: `Factuur ${jaar}-${String(++nr).padStart(4, "0")}`, hash: `demo-in-${m}-${i}`, bron: "csv", categorie: eu ? "omzet_eu" : "omzet", btwCode: eu ? "eu_dienst" : "21", btwBedrag: btw, zakelijk: true, zekerheid: 0.98, uitleg: "Betaling van een klant op een verzonden factuur.", bevestigd: true });
+      regels.push({ ondernemingId: oid, bankrekeningId: eu ? revolut.id : ing.id, tegenIban: IBANS[k.naam], datum: new Date(jaar, maand, 3 + Math.floor(rnd() * 20)), bedrag: bedrag2(excl + btw), tegenpartij: k.naam, omschrijving: `Factuur ${jaar}-${String(++nr).padStart(4, "0")}`, hash: `demo-in-${m}-${i}`, bron: "csv", categorie: eu ? "omzet_eu" : "omzet", btwCode: eu ? "eu_dienst" : "21", btwBedrag: btw, zakelijk: true, zekerheid: 0.98, uitleg: "Betaling van een klant op een verzonden factuur.", bevestigd: true });
     }
     const aantalUit = 6 + Math.floor(rnd() * 4);
     for (let i = 0; i < aantalUit; i++) {
@@ -91,13 +95,17 @@ async function main() {
       const btwCode = k.btw as string;
       const btw = btwCode === "21" ? bedrag2(bedrag - bedrag / 1.21) : btwCode === "9" ? bedrag2(bedrag - bedrag / 1.09) : 0;
       const twijfel = laatsteMaand && k.cat === "representatie";
-      regels.push({ ondernemingId: oid, bankrekeningId: rek.id, datum: new Date(jaar, maand, 1 + Math.floor(rnd() * 27)), bedrag: -bedrag, tegenpartij: k.naam, omschrijving: `${k.omschrijving} ${jaar}`, hash: `demo-uit-${m}-${i}`, bron: "csv", categorie: k.cat, btwCode, btwBedrag: btw, zakelijk: true, zekerheid: twijfel ? bedrag2(0.52 + rnd() * 0.3) : 0.96, uitleg: k.uitleg, bevestigd: !twijfel });
+      regels.push({ ondernemingId: oid, bankrekeningId: btwCode === "verlegd" ? revolut.id : ing.id, tegenIban: IBANS[k.naam], datum: new Date(jaar, maand, 1 + Math.floor(rnd() * 27)), bedrag: -bedrag, tegenpartij: k.naam, omschrijving: `${k.omschrijving} ${jaar}`, hash: `demo-uit-${m}-${i}`, bron: "csv", categorie: k.cat, btwCode, btwBedrag: btw, zakelijk: true, zekerheid: twijfel ? bedrag2(0.52 + rnd() * 0.3) : 0.96, uitleg: k.uitleg, bevestigd: !twijfel });
     }
   }
   // Privé en nog niet beoordeeld.
   regels.push({ ondernemingId: oid, bankrekeningId: rek.id, datum: new Date(nu.getFullYear(), nu.getMonth(), 2), bedrag: -1250, tegenpartij: "D. Jansen", omschrijving: "Privéopname", hash: "demo-prive-1", bron: "csv", categorie: "prive", btwCode: "geen", zakelijk: false, zekerheid: 0.99, uitleg: "Overboeking naar eigen privérekening.", bevestigd: true });
   regels.push({ ondernemingId: oid, bankrekeningId: rek.id, datum: new Date(nu.getFullYear(), nu.getMonth(), nu.getDate()), bedrag: -37.8, tegenpartij: "Tinkerlabs BV", omschrijving: "Order 48213", hash: "demo-open-1", bron: "csv", zakelijk: null, bevestigd: false });
   regels.push({ ondernemingId: oid, bankrekeningId: rek.id, datum: new Date(nu.getFullYear(), nu.getMonth() - 1, 28), bedrag: -1860, tegenpartij: "Belastingdienst", omschrijving: "Omzetbelasting", hash: "demo-btw-1", bron: "csv", categorie: "belasting", btwCode: "geen", zakelijk: true, zekerheid: 0.99, uitleg: "Betaalde btw-aangifte vorig kwartaal.", bevestigd: true });
+  // Een paar regels die alleen op Revolut voorkomen.
+  regels.push({ ondernemingId: oid, bankrekeningId: revolut.id, datum: new Date(nu.getFullYear(), nu.getMonth(), 1), bedrag: -15, tegenpartij: "Figma", omschrijving: "Figma Professional", hash: "demo-revo-1", bron: "csv", categorie: "software", btwCode: "verlegd", btwBedrag: 0, zakelijk: true, zekerheid: 0.97, uitleg: "Ontwerpsoftware, btw verlegd.", bevestigd: true });
+  regels.push({ ondernemingId: oid, bankrekeningId: revolut.id, datum: new Date(nu.getFullYear(), nu.getMonth(), 1), bedrag: -25, tegenpartij: "Revolut", omschrijving: "Business plan Grow", hash: "demo-revo-2", bron: "csv", categorie: "bankkosten", btwCode: "geen", btwBedrag: 0, zakelijk: true, zekerheid: 0.99, uitleg: "Abonnement zakelijke rekening, vrijgesteld.", bevestigd: true });
+  regels.push({ ondernemingId: oid, bankrekeningId: revolut.id, datum: new Date(nu.getFullYear(), nu.getMonth(), 5), bedrag: 2000, tegenpartij: "Studio Noord", tegenIban: "NL69INGB0001234567", omschrijving: "Overboeking eigen rekening", hash: "demo-revo-3", bron: "csv", categorie: "overboeking_eigen", btwCode: "geen", btwBedrag: 0, zakelijk: true, zekerheid: 0.99, uitleg: "Overboeking tussen eigen rekeningen.", bevestigd: true });
   for (const r of regels) await db.transactie.create({ data: r });
 
   // Facturen: betaald, open, te laat, concept.
@@ -141,7 +149,7 @@ async function main() {
   await db.melding.create({ data: { ondernemingId: oid, soort: "deadline", titel: "Btw-aangifte over dit kwartaal", tekst: "De aangifte staat klaar. Uiterlijk de laatste dag van de volgende maand indienen en betalen.", link: "/app/btw" } });
   await db.melding.create({ data: { ondernemingId: oid, soort: "sync", titel: "Bankbestand verwerkt", tekst: `${regels.length} regels geboekt.`, link: "/app/bank", gelezen: true } });
 
-  console.log(`Klaar: ${regels.length} bankregels, 7 facturen, 2 offertes, 3 bonnen, ${klanten.length} klanten voor "Studio Noord" (${gebruiker.email}).`);
+  console.log(`Klaar: ${regels.length} bankregels (ING en Revolut), 7 facturen, 2 offertes, 3 bonnen, ${klanten.length} klanten voor "Studio Noord" (${gebruiker.email}).`);
 }
 
 main().finally(() => db.$disconnect());

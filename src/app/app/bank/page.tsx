@@ -4,6 +4,7 @@ import { BTW_CODES, BTW_LABEL, CATEGORIEEN, CATEGORIE_INFO } from "@/lib/categor
 import { datumNl, euro } from "@/lib/btw";
 import { beoordeelOpenstaandFormulier, bevestigAlles, importeerBestand, verwijderTransactie, wijzigTransactie } from "@/lib/acties-bank";
 import { UploadFormulier } from "@/components/UploadFormulier";
+import { BankIcoon } from "@/components/BankIcoon";
 import { Kop, Leeg, Pil, knopLicht, knopTekst } from "@/components/ui";
 
 export const instant = false;
@@ -66,9 +67,14 @@ export default async function Bank({ searchParams }: { searchParams: Promise<Zoe
             const gekozen = sp.rekening === r.id;
             return (
               <Link key={r.id} href={link({ rekening: gekozen ? undefined : r.id, p: undefined })} aria-pressed={gekozen} className={`kaart block p-4 ${gekozen ? "border-inkt" : ""}`}>
-                <p className="truncate text-sm font-medium">{r.naam}</p>
-                <p className="truncate text-[13px] text-tekst-3">{r.iban}</p>
-                <p className="cijfer mt-2 text-[22px] font-semibold">{r.saldo != null ? euro(r.saldo) : "–"}</p>
+                <div className="flex items-center gap-3">
+                  <BankIcoon bank={r.bank} iban={r.iban} size={36} />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium">{r.naam}</p>
+                    <p className="truncate text-[13px] text-tekst-3">{r.iban}</p>
+                  </div>
+                </div>
+                <p className="cijfer mt-3 text-[22px] font-semibold">{r.saldo != null ? euro(r.saldo) : "–"}</p>
                 <p className="text-[13px] text-tekst-2">
                   {r.bron === "psd2" ? "Automatisch" : bronLabel[r.bron] ?? r.bron}, {r.laatsteSync ? `bijgewerkt ${datumNl(r.laatsteSync)}` : "nog niet bijgewerkt"}
                   {r.psd2Verloopt && r.psd2Verloopt < nu && <span className="ml-1 text-rood-tekst">toestemming verlopen</span>}

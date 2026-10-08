@@ -89,6 +89,17 @@ export function Leeg({ tekst, actie }: { tekst: string; actie?: React.ReactNode 
   );
 }
 
+/** Bedrag met de centen klein en verhoogd, zoals in een bankapp. Met `teken` krijgt een positief bedrag een plus. */
+export function Bedrag({ waarde, teken = false, className = "" }: { waarde: number; teken?: boolean; className?: string }) {
+  const [heel, centen] = Math.abs(waarde).toFixed(2).split(".");
+  const voor = waarde < 0 ? "-" : teken && waarde > 0 ? "+" : "";
+  return (
+    <span className={`cijfer whitespace-nowrap text-sm font-semibold ${className}`}>
+      € {voor}{Number(heel).toLocaleString("nl-NL")},<sup className="text-[10px] font-semibold">{centen}</sup>
+    </span>
+  );
+}
+
 export const knop = "knop";
 export const knopGroen = "knop knop-groen";
 export const knopLicht = "knop-licht";
