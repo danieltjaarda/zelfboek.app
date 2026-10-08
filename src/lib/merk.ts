@@ -3,3 +3,6 @@ export const MERK = "Zelfboek";
 export const MERK_SLOGAN = "Je boekhouding doet zichzelf.";
 export const MERK_DOMEIN = "zelfboek.nl";
 export const PRIJS = 50;
+
+/** Adres van de marketingsite (aparte repo zelfboek-website). */
+export const WEBSITE_URL = (process.env.NEXT_PUBLIC_WEBSITE_URL ?? `https://${MERK_DOMEIN}`).replace(/\/$/, "");

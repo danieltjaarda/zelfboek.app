@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Woordmerk } from "@/components/Merk";
+import { WEBSITE_URL } from "@/lib/merk";
 
 export default function NietGevonden() {
   return (
@@ -9,7 +10,7 @@ export default function NietGevonden() {
       <p className="mt-2 max-w-sm text-[16px] text-tekst-2">Misschien is de link verouderd. Ga terug naar je overzicht of naar de startpagina.</p>
       <div className="mt-8 flex gap-3">
         <Link href="/app" className="knop">Naar mijn overzicht</Link>
-        <Link href="/" className="knop-licht">Startpagina</Link>
+        <a href={WEBSITE_URL} className="knop-licht">Startpagina</a>
       </div>
     </main>
   );

@@ -1,4 +1,4 @@
-import { MERK } from "@/lib/merk";
+import { MERK, WEBSITE_URL } from "@/lib/merk";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { huidigeSessie, logInMetCode, stuurLoginCode } from "@/lib/auth";
@@ -29,7 +29,7 @@ export default async function Login({ searchParams }: { searchParams: Promise<{ 
   return (
     <main className="flex flex-1 items-center justify-center px-6 py-16">
       <div className="w-full max-w-sm">
-        <Link href="/" className="inline-block" aria-label={MERK}><Woordmerk size={20} /></Link>
+        <a href={WEBSITE_URL} className="inline-block" aria-label={MERK}><Woordmerk size={20} /></a>
         <div className="kaart mt-6 p-7">
           {!sp.email ? (
             <>
