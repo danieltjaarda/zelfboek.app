@@ -60,7 +60,7 @@ export function BotSpotlight({ dicht, verborgen }: { dicht: boolean; verborgen: 
   const overlay = open ? createPortal(
     <div className="fixed inset-0 z-[60] flex items-start justify-center px-4 pt-[16vh]">
       {/* De blur staat inline: de CSS-compiler laat anders alleen de -webkit-variant over, die Chrome niet kent. */}
-      <button type="button" aria-label="Sluiten" onClick={sluit} className={`spot-achter absolute inset-0 ${uit ? "uit" : ""}`} style={{ backdropFilter: "blur(14px) saturate(0.9)", WebkitBackdropFilter: "blur(14px) saturate(0.9)" }} />
+      <button type="button" aria-label="Sluiten" onClick={sluit} className={`spot-achter absolute inset-0 ${uit ? "uit" : ""}`} style={{ backdropFilter: "blur(28px) saturate(1.25)", WebkitBackdropFilter: "blur(28px) saturate(1.25)" }} />
       <div role="dialog" aria-modal="true" aria-label="Vraag het de bot" className={`spot-paneel relative w-full max-w-2xl ${uit ? "uit" : ""}`}>
         <div className="ai-balk-binnen spot-vak">
           <form onSubmit={(e) => { e.preventDefault(); vraag(String(new FormData(e.currentTarget).get("q") ?? "")); }} className="flex items-center gap-4 px-5 py-4">
