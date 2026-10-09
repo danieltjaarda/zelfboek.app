@@ -10,12 +10,17 @@ import { Cijferband, Kaart, Kop, Tegel, knop, knopLicht, veld } from "@/componen
 
 export const instant = false;
 
+/** Tot en met wanneer afschrijven: einde van het jaar, of vandaag als dat eerder is. */
+function peildatum(jaar: number) {
+  return new Date(Math.min(Date.now(), new Date(jaar, 11, 31).getTime()));
+}
+
 export default async function JaarrekeningPagina({ searchParams }: { searchParams: Promise<{ j?: string }> }) {
   await connection();
   const sp = await searchParams;
   const o = await huidigeOnderneming();
   const jaar = Number(sp.j) || new Date().getFullYear();
-  await boekAfschrijvingen(o.id, new Date(Math.min(Date.now(), new Date(jaar, 11, 31).getTime())));
+  await boekAfschrijvingen(o.id, peildatum(jaar));
   const jr = await jaarrekening(o.id, jaar);
 
   return (

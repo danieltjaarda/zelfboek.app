@@ -2,6 +2,7 @@ import { MERK } from "@/lib/merk";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import { timingSafeEqual } from "crypto";
 import { db } from "./db";
 import { hash, willekeurigToken, zesCijfers } from "./crypto";
 import { htmlMail, verstuurMail } from "./mail";
@@ -14,6 +15,10 @@ export async function stuurLoginCode(email: string): Promise<{ ok: boolean; meld
   const e = email.trim().toLowerCase();
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return { ok: false, melding: "Ongeldig e-mailadres." };
   const gebruiker = await db.gebruiker.upsert({ where: { email: e }, update: {}, create: { email: e } });
+  // Hooguit 3 codes per 10 minuten per adres, en elke nieuwe code maakt de vorige ongeldig.
+  const recent = await db.loginCode.count({ where: { gebruikerId: gebruiker.id, aangemaakt: { gt: new Date(Date.now() - 10 * 60_000) } } });
+  if (recent >= 3) return { ok: false, melding: "Je hebt net al een code gekregen. Kijk in je mail (ook bij spam) of probeer het over 10 minuten opnieuw." };
+  await db.loginCode.updateMany({ where: { gebruikerId: gebruiker.id, gebruiktOp: null }, data: { gebruiktOp: new Date() } });
   const code = zesCijfers();
   await db.loginCode.create({
     data: { gebruikerId: gebruiker.id, codeHash: hash(code), verlooptOp: new Date(Date.now() + 10 * 60_000) },
@@ -33,11 +38,19 @@ export async function logInMetCode(email: string, code: string): Promise<{ ok: b
   const e = email.trim().toLowerCase();
   const gebruiker = await db.gebruiker.findUnique({ where: { email: e } });
   if (!gebruiker) return { ok: false, melding: "Onbekend e-mailadres." };
-  const geldig = await db.loginCode.findFirst({
-    where: { gebruikerId: gebruiker.id, codeHash: hash(code.trim()), gebruiktOp: null, verlooptOp: { gt: new Date() } },
+  // Eén open code per gebruiker; na 5 foute pogingen is die waardeloos (tegen gokken op 6 cijfers).
+  const open = await db.loginCode.findFirst({
+    where: { gebruikerId: gebruiker.id, gebruiktOp: null, verlooptOp: { gt: new Date() } },
+    orderBy: { aangemaakt: "desc" },
   });
-  if (!geldig) return { ok: false, melding: "Code onjuist of verlopen." };
-  await db.loginCode.update({ where: { id: geldig.id }, data: { gebruiktOp: new Date() } });
+  if (!open || open.pogingen >= 5) return { ok: false, melding: "Code verlopen of te vaak fout. Vraag een nieuwe code aan." };
+  const gegeven = hash(code.trim());
+  if (gegeven.length !== open.codeHash.length || !timingSafeEqual(Buffer.from(gegeven), Buffer.from(open.codeHash))) {
+    await db.loginCode.update({ where: { id: open.id }, data: { pogingen: { increment: 1 } } });
+    const over = 4 - open.pogingen;
+    return { ok: false, melding: `Code onjuist. Nog ${over} ${over === 1 ? "poging" : "pogingen"}.` };
+  }
+  await db.loginCode.update({ where: { id: open.id }, data: { gebruiktOp: new Date() } });
 
   const token = willekeurigToken();
   const lid = await db.lidmaatschap.findFirst({ where: { gebruikerId: gebruiker.id } });
@@ -108,6 +121,20 @@ export const huidigeOnderneming = cache(async () => {
   await db.sessie.update({ where: { id: s.id }, data: { actieveOndernemingId: o.id } });
   return o;
 });
+
+/**
+ * De actieve onderneming, maar alleen als de gebruiker er mag schrijven (eigenaar of boekhouder).
+ * Een "lezer" mag kijken, niet wijzigen. Gebruik dit in elke server action die iets aanpast.
+ */
+export async function schrijfOnderneming() {
+  const s = await vereisGebruiker();
+  const o = await huidigeOnderneming();
+  const lid = await db.lidmaatschap.findUnique({
+    where: { gebruikerId_ondernemingId: { gebruikerId: s.gebruikerId, ondernemingId: o.id } },
+  });
+  if (!lid || !["eigenaar", "boekhouder"].includes(lid.rol)) throw new Error("Je hebt alleen leesrechten in deze onderneming.");
+  return o;
+}
 
 export async function wisselOnderneming(ondernemingId: string) {
   const s = await vereisGebruiker();

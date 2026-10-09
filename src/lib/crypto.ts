@@ -1,9 +1,16 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync } from "crypto";
+import { createCipheriv, createDecipheriv, createHash, randomBytes, randomInt, scryptSync, timingSafeEqual } from "crypto";
 
-/** Sleutel uit APP_SECRET; zonder secret draait het op een vaste ontwikkelsleutel. */
+/** APP_SECRET; alleen buiten productie valt het terug op een vaste ontwikkelsleutel. */
+export function appGeheim(): string {
+  const geheim = process.env.APP_SECRET;
+  if (geheim) return geheim;
+  if (process.env.NODE_ENV === "production") throw new Error("APP_SECRET ontbreekt: zet een lange willekeurige string in de omgeving.");
+  return "ontwikkel-sleutel-niet-voor-productie";
+}
+
+/** Sleutel uit APP_SECRET. */
 function sleutel() {
-  const geheim = process.env.APP_SECRET || "ontwikkel-sleutel-niet-voor-productie";
-  return scryptSync(geheim, "boekhoudbot", 32);
+  return scryptSync(appGeheim(), "boekhoudbot", 32);
 }
 
 export function versleutel(tekst: string): string {
@@ -23,4 +30,12 @@ export function ontsleutel(blob: string): string {
 
 export const hash = (s: string) => createHash("sha256").update(s).digest("hex");
 export const willekeurigToken = (bytes = 32) => randomBytes(bytes).toString("base64url");
-export const zesCijfers = () => String(Math.floor(100000 + Math.random() * 900000));
+export const zesCijfers = () => String(100000 + randomInt(900000));
+
+/** Vergelijk een meegegeven geheim met het verwachte, zonder timing-lek. */
+export function geheimKlopt(gegeven: string | null | undefined, verwacht: string | null | undefined): boolean {
+  if (!gegeven || !verwacht) return false;
+  const a = Buffer.from(gegeven);
+  const b = Buffer.from(verwacht);
+  return a.length === b.length && timingSafeEqual(a, b);
+}

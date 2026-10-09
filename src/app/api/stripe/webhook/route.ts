@@ -8,6 +8,17 @@ async function ondernemingVan(stripe: Stripe, klantId: string | null, meta?: Rec
   return db.onderneming.findFirst({ where: { stripeKlantId: klantId } });
 }
 
+/** Abonnement-id van een factuur; Stripe verplaatste dit veld tussen API-versies, dus beide plekken bekijken. */
+function abonnementVanFactuur(inv: Stripe.Invoice): string | null {
+  const oud = (inv as unknown as { subscription?: string | { id: string } | null }).subscription;
+  if (typeof oud === "string") return oud;
+  if (oud && typeof oud === "object") return oud.id;
+  const nieuw = inv.parent?.subscription_details?.subscription;
+  if (typeof nieuw === "string") return nieuw;
+  if (nieuw && typeof nieuw === "object") return nieuw.id;
+  return null;
+}
+
 export async function POST(req: Request) {
   const sleutel = process.env.STRIPE_SECRET_KEY;
   const geheim = process.env.STRIPE_WEBHOOK_SECRET;
@@ -40,7 +51,11 @@ export async function POST(req: Request) {
   } else if (event.type === "invoice.paid") {
     const inv = event.data.object as Stripe.Invoice;
     const o = await ondernemingVan(stripe, typeof inv.customer === "string" ? inv.customer : inv.customer?.id ?? null);
-    if (o && o.abonnement !== "actief") await db.onderneming.update({ where: { id: o.id }, data: { abonnement: "actief" } });
+    // Alleen heractiveren als de factuur bij het lopende abonnement hoort; een laatste factuur na opzegging mag een gestopt abonnement niet terugzetten.
+    const subId = abonnementVanFactuur(inv);
+    if (o && o.abonnement !== "actief" && o.abonnement !== "gestopt" && (!subId || subId === o.stripeAbonnementId)) {
+      await db.onderneming.update({ where: { id: o.id }, data: { abonnement: "actief" } });
+    }
   }
   return NextResponse.json({ ontvangen: true });
 }

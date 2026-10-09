@@ -19,7 +19,7 @@ export type Totalen = {
 export type KlantFiscaal = { land?: string | null; btwNummer?: string | null; isOndernemer?: boolean | null };
 export type OndernemingFiscaal = { korDeelnemer?: boolean | null; land?: string | null };
 
-const EU = new Set(["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE"]);
+export const EU = new Set(["AT","BE","BG","HR","CY","CZ","DK","EE","FI","FR","DE","GR","HU","IE","IT","LV","LT","LU","MT","NL","PL","PT","RO","SK","SI","ES","SE"]);
 
 /** Btw verlegd: EU-ondernemer buiten NL met btw-nummer, of buiten de EU. */
 export function isVerlegd(klant: KlantFiscaal | null | undefined): boolean {
@@ -71,10 +71,18 @@ export function regelsUitFormData(fd: FormData, max = 30): FactuurRegel[] {
     uit.push({
       omschrijving: oms,
       aantal: Number(String(fd.get(`aantal${i}`) ?? "1").replace(",", ".")) || 1,
-      prijs: Number(String(fd.get(`prijs${i}`) ?? "0").replace(/\./g, "").replace(",", ".")) || 0,
+      prijs: parseBedrag(String(fd.get(`prijs${i}`) ?? "0")),
       btw: Number(fd.get(`btw${i}`) ?? 21),
       eenheid: String(fd.get(`eenheid${i}`) ?? "").trim() || undefined,
     });
   }
   return uit;
+}
+
+/** "12,50", "12.50" en "1.250,00" worden allemaal 1250 of 12.5 zoals bedoeld. */
+export function parseBedrag(tekst: string): number {
+  const t = tekst.trim().replace(/\s/g, "").replace(/[^0-9.,-]/g, "");
+  if (!t) return 0;
+  const n = t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : /^\d{1,3}(\.\d{3})+$/.test(t) ? t.replace(/\./g, "") : t;
+  return Number(n) || 0;
 }

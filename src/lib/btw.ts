@@ -74,25 +74,32 @@ export function btwAangifte(regels: Regel[]): Aangifte {
     const soort = x.categorie && x.categorie in CATEGORIE_INFO ? CATEGORIE_INFO[x.categorie as Categorie].soort : "kosten";
     if (soort === "balans" || soort === "prive") continue;
 
-    if (x.bedrag > 0) {
-      if (code === "21") { tel("1a_omzet", excl); tel("1a_btw", btw); }
-      else if (code === "9") { tel("1b_omzet", excl); tel("1b_btw", btw); }
-      else if (code === "verlegd") { tel("1e_omzet", excl); }
-      else if (code === "eu_dienst" || code === "eu_goed" || x.categorie === "omzet_eu") { tel("3b_omzet", excl); }
-      else if (code === "buiten_eu" || x.categorie === "omzet_buiten_eu") { tel("3a_omzet", excl); }
-      else if (code === "0" || code === "vrijgesteld") { tel("1e_omzet", excl); }
+    // Omzet of kosten volgt uit de categorie, niet uit het teken: een terugbetaling aan een klant is negatieve
+    // omzet (1a lager), een creditering van een leverancier is negatieve voorbelasting.
+    const verkoop = soort === "omzet" || (!x.categorie && x.bedrag > 0);
+    const teken = x.bedrag >= 0 ? 1 : -1;
+    if (verkoop) {
+      const e = teken * excl;
+      const b = teken * btw;
+      if (code === "21") { tel("1a_omzet", e); tel("1a_btw", b); }
+      else if (code === "9") { tel("1b_omzet", e); tel("1b_btw", b); }
+      else if (code === "verlegd") { tel("1e_omzet", e); }
+      else if (code === "eu_dienst" || code === "eu_goed" || x.categorie === "omzet_eu") { tel("3b_omzet", e); }
+      else if (code === "buiten_eu" || x.categorie === "omzet_buiten_eu") { tel("3a_omzet", e); }
+      else if (code === "0" || code === "vrijgesteld") { tel("1e_omzet", e); }
     } else {
+      const k = -teken; // kosten zijn normaal negatief; een terugstorting van een leverancier draait het om
       if (code === "eu_dienst" || code === "eu_goed") {
         const b = rond(incl * 0.21);
-        tel("4b_omzet", incl); tel("4b_btw", b); tel("5b_voorbelasting", b);
+        tel("4b_omzet", k * incl); tel("4b_btw", k * b); tel("5b_voorbelasting", k * b);
       } else if (code === "buiten_eu") {
         const b = rond(incl * 0.21);
-        tel("4a_omzet", incl); tel("4a_btw", b); tel("5b_voorbelasting", b);
+        tel("4a_omzet", k * incl); tel("4a_btw", k * b); tel("5b_voorbelasting", k * b);
       } else if (code === "verlegd") {
         const b = rond(incl * 0.21);
-        tel("2a_omzet", incl); tel("2a_btw", b); tel("5b_voorbelasting", b);
+        tel("2a_omzet", k * incl); tel("2a_btw", k * b); tel("5b_voorbelasting", k * b);
       } else {
-        tel("5b_voorbelasting", btw);
+        tel("5b_voorbelasting", k * btw);
       }
     }
   }

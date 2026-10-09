@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { db, huidigeOnderneming } from "./db";
+import { db, schrijfOnderneming } from "./db";
 import { rond } from "./btw";
 import { KM_VERGOEDING, INVESTERINGSGRENS } from "./fiscaal/constanten-2026";
 import { boekAfschrijvingen } from "./fiscaal/afschrijving";
@@ -17,7 +17,7 @@ const d = (fd: FormData, k: string) => {
 // ───────────── Uren ─────────────
 
 export async function urenToevoegen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const uren = n(fd, "uren");
   if (uren <= 0) return;
   const klantId = s(fd, "klantId") || null;
@@ -40,7 +40,7 @@ export async function urenToevoegen(fd: FormData): Promise<void> {
 }
 
 export async function urenWijzigen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const id = s(fd, "id");
   await db.urenregel.updateMany({
     where: { id, ondernemingId: o.id },
@@ -50,7 +50,7 @@ export async function urenWijzigen(fd: FormData): Promise<void> {
 }
 
 export async function urenVerwijderen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.urenregel.deleteMany({ where: { id: s(fd, "id"), ondernemingId: o.id } });
   revalidatePath("/app/uren");
 }
@@ -58,7 +58,7 @@ export async function urenVerwijderen(fd: FormData): Promise<void> {
 // ───────────── Kilometers ─────────────
 
 export async function kilometersToevoegen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const km = n(fd, "km");
   if (km <= 0) return;
   const retour = s(fd, "retour") === "ja";
@@ -72,7 +72,7 @@ export async function kilometersToevoegen(fd: FormData): Promise<void> {
 }
 
 export async function kilometersVerwijderen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.kilometerregel.deleteMany({ where: { id: s(fd, "id"), ondernemingId: o.id } });
   revalidatePath("/app/kilometers");
 }
@@ -80,7 +80,7 @@ export async function kilometersVerwijderen(fd: FormData): Promise<void> {
 // ───────────── Activa ─────────────
 
 export async function activumToevoegen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bedrag = n(fd, "aanschafBedrag");
   if (bedrag < INVESTERINGSGRENS) return;
   const a = await db.activum.create({
@@ -91,7 +91,7 @@ export async function activumToevoegen(fd: FormData): Promise<void> {
       aanschafDatum: d(fd, "aanschafDatum"),
       aanschafBedrag: bedrag,
       restwaarde: n(fd, "restwaarde"),
-      looptijdJaren: Math.max(1, Math.round(n(fd, "looptijdJaren") || 5)),
+      looptijdJaren: Math.max(5, Math.round(n(fd, "looptijdJaren") || 5)), // fiscaal max 20% per jaar (art. 3.30 Wet IB)
       priveDeel: Math.min(1, Math.max(0, n(fd, "priveDeel") / 100)),
       kiaToegepast: bedrag >= INVESTERINGSGRENS,
     },
@@ -112,7 +112,7 @@ async function koppelTransactieAanActivum(ondernemingId: string, transactieId: s
 
 /** Een bankregel direct als investering boeken: maakt het activum aan vanuit de transactie. */
 export async function boekAlsInvestering(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const t = await db.transactie.findFirst({ where: { id: s(fd, "transactieId"), ondernemingId: o.id } });
   if (!t || t.bedrag >= 0) return;
   const incl = Math.abs(t.bedrag);
@@ -124,7 +124,7 @@ export async function boekAlsInvestering(fd: FormData): Promise<void> {
       categorie: s(fd, "categorie") || "inventaris",
       aanschafDatum: t.datum,
       aanschafBedrag: rond(incl - btw),
-      looptijdJaren: Math.max(1, Math.round(n(fd, "looptijdJaren") || 5)),
+      looptijdJaren: Math.max(5, Math.round(n(fd, "looptijdJaren") || 5)), // fiscaal max 20% per jaar (art. 3.30 Wet IB)
       kiaToegepast: true,
     },
   });
@@ -135,7 +135,7 @@ export async function boekAlsInvestering(fd: FormData): Promise<void> {
 }
 
 export async function activumVerkopen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.activum.updateMany({
     where: { id: s(fd, "id"), ondernemingId: o.id },
     data: { verkochtOp: d(fd, "verkochtOp"), verkoopBedrag: n(fd, "verkoopBedrag") },
@@ -144,7 +144,7 @@ export async function activumVerkopen(fd: FormData): Promise<void> {
 }
 
 export async function activumVerwijderen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const id = s(fd, "id");
   await db.transactie.updateMany({ where: { activumId: id, ondernemingId: o.id }, data: { activumId: null } });
   await db.memoriaalboeking.deleteMany({ where: { ondernemingId: o.id, soort: "afschrijving", omschrijving: { startsWith: `AFS:${id}:` } } });
@@ -153,7 +153,7 @@ export async function activumVerwijderen(fd: FormData): Promise<void> {
 }
 
 export async function afschrijvingenBijwerken(): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await boekAfschrijvingen(o.id);
   revalidatePath("/app/activa");
   revalidatePath("/app/jaarrekening");
@@ -162,7 +162,7 @@ export async function afschrijvingenBijwerken(): Promise<void> {
 // ───────────── Memoriaal ─────────────
 
 export async function memoriaalToevoegen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bedrag = n(fd, "bedrag");
   if (!bedrag) return;
   await db.memoriaalboeking.create({
@@ -183,7 +183,7 @@ export async function memoriaalToevoegen(fd: FormData): Promise<void> {
 // ───────────── Aangiften ─────────────
 
 export async function aangifteOpslaan(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const soort = s(fd, "soort") === "icp" ? "icp" : "btw";
   const jaar = Math.round(n(fd, "jaar"));
   const periode = Math.round(n(fd, "periode"));
@@ -208,7 +208,7 @@ export async function aangifteOpslaan(fd: FormData): Promise<void> {
 // ───────────── IB-instellingen ─────────────
 
 export async function ibInstellingenOpslaan(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.onderneming.update({
     where: { id: o.id },
     data: {

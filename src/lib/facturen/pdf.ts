@@ -56,9 +56,10 @@ export function maakPdf(o: Onderneming, klant: Klant, doc: Document): Promise<Bu
 
     // Kop: logo of naam
     let y = 50;
-    if (o.logoPad && existsSync(o.logoPad) && /\.(png|jpe?g)$/i.test(o.logoPad)) {
+    const logoBron = o.logo && /^image\/(png|jpe?g)$/i.test(o.logoMime ?? "") ? Buffer.from(o.logo) : o.logoPad && existsSync(o.logoPad) && /\.(png|jpe?g)$/i.test(o.logoPad) ? o.logoPad : null;
+    if (logoBron) {
       try {
-        pdf.image(o.logoPad, links, y, { fit: [160, 60] });
+        pdf.image(logoBron, links, y, { fit: [160, 60] });
       } catch {
         pdf.fillColor(kleur).fontSize(20).font("Helvetica-Bold").text(o.naam, links, y);
       }
@@ -76,7 +77,7 @@ export function maakPdf(o: Onderneming, klant: Klant, doc: Document): Promise<Bu
     pdf.fillColor("#1c1917").fontSize(10);
     const afz = adresBlok({ naam: o.naam, adres: o.adres, postcode: o.postcode, plaats: o.plaats, land: o.land });
     afz.forEach((r, i) => pdf.text(r, links, y + 14 + i * 13));
-    let yy = y + 14 + afz.length * 13 + 4;
+    const yy = y + 14 + afz.length * 13 + 4;
     pdf.fillColor(grijs).fontSize(8.5);
     const meta = [
       o.kvk ? `KvK ${o.kvk}` : null,
@@ -96,8 +97,8 @@ export function maakPdf(o: Onderneming, klant: Klant, doc: Document): Promise<Bu
     kl.forEach((r, i) => pdf.text(r, kx, y + 14 + i * 13));
     let ky = y + 14 + kl.length * 13 + 4;
     pdf.fillColor(grijs).fontSize(8.5);
-    if (klant.btwNummer) pdf.text(`Btw-id ${klant.btwNummer}`, kx, ky), (ky += 11);
-    if (klant.kvk) pdf.text(`KvK ${klant.kvk}`, kx, ky), (ky += 11);
+    if (klant.btwNummer) { pdf.text(`Btw-id ${klant.btwNummer}`, kx, ky); ky += 11; }
+    if (klant.kvk) { pdf.text(`KvK ${klant.kvk}`, kx, ky); ky += 11; }
 
     // Datums
     y = Math.max(yy + meta.length * 11, ky) + 20;
@@ -212,12 +213,17 @@ export function maakPdf(o: Onderneming, klant: Klant, doc: Document): Promise<Bu
   });
 }
 
+/** Kopie op schijf voor lokaal gebruik; op Vercel (alleen-lezen) slaan we dit stilzwijgend over. */
 async function bewaar(ondernemingId: string, map: string, naam: string, data: Buffer) {
-  const dir = path.join(process.cwd(), "uploads", ondernemingId, map);
-  await mkdir(dir, { recursive: true });
-  const pad = path.join(dir, naam);
-  await writeFile(pad, data);
-  return pad;
+  try {
+    const dir = path.join(process.cwd(), "uploads", ondernemingId, map);
+    await mkdir(dir, { recursive: true });
+    const pad = path.join(dir, naam);
+    await writeFile(pad, data);
+    return pad;
+  } catch {
+    return "";
+  }
 }
 
 /** Factuur-PDF maken, opslaan en pdfPad zetten. */

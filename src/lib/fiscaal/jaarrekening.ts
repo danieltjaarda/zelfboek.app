@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { btwAangifte, rond } from "@/lib/btw";
+import { btwAangifte, rond, periodeBereik } from "@/lib/btw";
 import { boekwaarde } from "./afschrijving";
 import { winstVerlies, type WinstVerlies } from "./winst";
 
@@ -26,14 +26,20 @@ export async function jaarrekening(ondernemingId: string, jaar: number): Promise
   const start = new Date(jaar, 0, 1);
   const eind = new Date(jaar + 1, 0, 1);
   const peil = new Date(jaar, 11, 31, 23, 59, 59);
+  const onderneming = await db.onderneming.findUniqueOrThrow({ where: { id: ondernemingId }, select: { btwTijdvak: true } });
+  // Laatste btw-tijdvak van het jaar: december, Q4 of het hele jaar.
+  const laatstePeriode = onderneming.btwTijdvak === "maand" ? 12 : onderneming.btwTijdvak === "jaar" ? 0 : 4;
+  const laatsteTijdvak = periodeBereik(onderneming.btwTijdvak, jaar, laatstePeriode);
+  const lopendJaar = jaar === new Date().getFullYear();
 
   const [wv, rekeningen, mutaties, openFacturen, activa, btwRegels, aangiften, prive] = await Promise.all([
     winstVerlies(ondernemingId, start, eind),
     db.bankrekening.findMany({ where: { ondernemingId } }),
     db.transactie.groupBy({ by: ["bankrekeningId"], where: { ondernemingId, datum: { lt: eind } }, _sum: { bedrag: true } }),
-    db.factuur.findMany({ where: { ondernemingId, datum: { lt: eind }, status: { in: ["verzonden", "herinnerd", "aangemaand"] } } }),
+    // Debiteuren per 31-12: verzonden vóór jaareinde en toen nog niet (volledig) betaald, ook als ze inmiddels wel betaald zijn.
+    db.factuur.findMany({ where: { ondernemingId, soort: "factuur", datum: { lt: eind }, status: { notIn: ["concept", "gecrediteerd"] }, OR: [{ betaaldOp: null }, { betaaldOp: { gte: eind } }] } }),
     db.activum.findMany({ where: { ondernemingId, aanschafDatum: { lt: eind } } }),
-    db.transactie.findMany({ where: { ondernemingId, datum: { gte: new Date(jaar, 9, 1), lt: eind } }, select: { bedrag: true, btwCode: true, btwBedrag: true, zakelijk: true, categorie: true, priveDeel: true } }),
+    db.transactie.findMany({ where: { ondernemingId, datum: { gte: laatsteTijdvak.start, lt: laatsteTijdvak.eind } }, select: { bedrag: true, btwCode: true, btwBedrag: true, zakelijk: true, categorie: true, priveDeel: true } }),
     db.aangifte.findMany({ where: { ondernemingId, soort: "btw", jaar } }),
     db.transactie.aggregate({ where: { ondernemingId, datum: { gte: start, lt: eind }, categorie: "prive" }, _sum: { bedrag: true } }),
   ]);
@@ -44,7 +50,8 @@ export async function jaarrekening(ondernemingId: string, jaar: number): Promise
   let bankTotaal = 0;
   for (const r of rekeningen) {
     const mut = mutaties.find((m) => m.bankrekeningId === r.id)?._sum.bedrag ?? 0;
-    const saldo = r.saldo ?? mut;
+    // Het live banksaldo geldt alleen voor het lopende jaar; voor een oud boekjaar telt het mutatiesaldo t/m 31-12.
+    const saldo = lopendJaar && r.saldo != null ? r.saldo : mut;
     bankTotaal += saldo;
     activaPosten.push({ label: `Bank ${r.naam}`, rgs: "BLimBanRba", bedrag: rond(saldo) });
   }
@@ -54,7 +61,7 @@ export async function jaarrekening(ondernemingId: string, jaar: number): Promise
     activaPosten.push({ label: "Bank (mutatiesaldo)", rgs: "BLimBanRba", bedrag: rond(losseMutaties) });
   }
 
-  const debiteuren = rond(openFacturen.reduce((s, f) => s + f.totaal - f.betaaldBedrag, 0));
+  const debiteuren = rond(openFacturen.reduce((s, f) => s + (f.betaaldOp && f.betaaldOp >= eind ? f.totaal : f.totaal - f.betaaldBedrag), 0));
   if (debiteuren) activaPosten.push({ label: "Debiteuren (open facturen)", rgs: "BVorDebHad", bedrag: debiteuren });
 
   let activaBoekwaarde = 0;
@@ -66,7 +73,7 @@ export async function jaarrekening(ondernemingId: string, jaar: number): Promise
 
   // Btw-schuld: laatste kwartaal als die nog niet betaald is
   const q4 = btwAangifte(btwRegels);
-  const q4Betaald = aangiften.some((a) => a.periode === 4 && a.status === "betaald");
+  const q4Betaald = aangiften.some((a) => a.periode === laatstePeriode && a.status === "betaald");
   const btwSchuld = q4Betaald ? 0 : q4["5c_te_betalen"];
   if (btwSchuld > 0) passivaPosten.push({ label: "Te betalen omzetbelasting", rgs: "BSchBepBtw", bedrag: rond(btwSchuld) });
   else if (btwSchuld < 0) activaPosten.push({ label: "Te vorderen omzetbelasting", rgs: "BVorVbkTvo", bedrag: rond(-btwSchuld) });

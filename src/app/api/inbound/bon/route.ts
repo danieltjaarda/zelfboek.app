@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { db } from "@/lib/db";
 import { leesBon } from "@/lib/ai";
+import { geheimKlopt } from "@/lib/crypto";
 
 /**
  * Bonnen per e-mail: de klant stuurt een bon naar bonnen+<ondernemingId>@jouwdomein.nl.
@@ -13,7 +12,7 @@ export async function POST(req: Request) {
   const geheim = process.env.INBOUND_SECRET;
   const url = new URL(req.url);
   const meegegeven = url.searchParams.get("secret") ?? req.headers.get("authorization")?.replace(/^Bearer /, "");
-  if (!geheim || meegegeven !== geheim) return NextResponse.json({ fout: "Niet toegestaan" }, { status: 401 });
+  if (!geheimKlopt(meegegeven, geheim)) return NextResponse.json({ fout: "Niet toegestaan" }, { status: 401 });
 
   let aan = "";
   let afzender = "";
@@ -43,18 +42,24 @@ export async function POST(req: Request) {
 
   const match = aan.match(/bonnen\+([a-z0-9]+)@/i);
   if (!match) return NextResponse.json({ fout: "Geen onderneming in het adres" }, { status: 400 });
-  const o = await db.onderneming.findUnique({ where: { id: match[1] } });
-  if (!o) return NextResponse.json({ fout: "Onbekende onderneming" }, { status: 404 });
+  const o = await db.onderneming.findUnique({ where: { id: match[1] }, include: { leden: { include: { gebruiker: true } } } });
+  // Onbekend adres: 200 teruggeven zodat de mailprovider niet blijft retryen en niemand ondernemings-id's kan raden.
+  if (!o) return NextResponse.json({ ontvangen: 0, genegeerd: "onbekend adres" });
+
+  // Alleen mail van een lid of van het bedrijfsadres zelf: anders kan iedereen bonnen in andermans boekhouding duwen.
+  const afzAdres = afzender.match(/[^<\s"]+@[^>\s"]+/)?.[0]?.toLowerCase() ?? "";
+  const bekend = afzAdres && (o.leden.some((l) => l.gebruiker.email.toLowerCase() === afzAdres) || o.email?.toLowerCase() === afzAdres);
+  if (!bekend) {
+    await db.melding.create({ data: { ondernemingId: o.id, soort: "systeem", titel: "Bon per e-mail genegeerd", tekst: `Afzender ${afzAdres || "onbekend"} is geen lid van deze onderneming. Stuur bonnen vanaf het e-mailadres waarmee je inlogt.`, link: "/app/bonnen" } });
+    return NextResponse.json({ ontvangen: bijlagen.length, verwerkt: 0, genegeerd: "afzender onbekend" });
+  }
 
   const toegestaan = ["application/pdf", "image/png", "image/jpeg", "image/webp", "image/gif"];
-  const map = path.join(process.cwd(), "uploads", o.id);
-  await mkdir(map, { recursive: true });
   let verwerkt = 0;
 
   for (const b of bijlagen.filter((x) => toegestaan.includes(x.type))) {
-    const pad = path.join(map, `${Date.now()}-${b.naam.replace(/[^\w.-]/g, "_")}`);
-    await writeFile(pad, b.data);
-    const bon = await db.bon.create({ data: { ondernemingId: o.id, bestandsnaam: b.naam, mimeType: b.type, bestandsPad: pad, bron: "email" } });
+    if (b.data.length > 20 * 1024 * 1024) continue;
+    const bon = await db.bon.create({ data: { ondernemingId: o.id, bestandsnaam: b.naam, mimeType: b.type, bestandsPad: "", inhoud: new Uint8Array(b.data), bron: "email" } });
     try {
       const u = await leesBon(b.data, b.type);
       const datum = u.datum ? new Date(u.datum) : null;
@@ -67,11 +72,14 @@ export async function POST(req: Request) {
         },
       });
       if (datum && u.totaal) {
-        const kandidaat = await db.transactie.findFirst({
+        const kandidaten = await db.transactie.findMany({
           where: { ondernemingId: o.id, bonId: null, datum: { gte: new Date(datum.getTime() - 14 * 864e5), lte: new Date(datum.getTime() + 14 * 864e5) }, bedrag: { gte: -u.totaal - 0.01, lte: -u.totaal + 0.01 } },
+          take: 2,
         });
-        if (kandidaat) {
-          await db.transactie.update({ where: { id: kandidaat.id }, data: { bonId: bon.id, btwBedrag: u.btwBedrag, btwCode: u.btwCode, categorie: u.categorie, zakelijk: true, bevestigd: true, zekerheid: 1, uitleg: `Bon per e-mail gekoppeld: ${u.leverancier}` } });
+        // Precies één bankregel met dit bedrag: koppelen, maar de ondernemer bevestigt zelf (niet automatisch "zeker").
+        if (kandidaten.length === 1) {
+          const kandidaat = kandidaten[0];
+          await db.transactie.update({ where: { id: kandidaat.id }, data: { bonId: bon.id, btwBedrag: u.btwBedrag, btwCode: u.btwCode, categorie: u.categorie, zakelijk: true, bevestigd: false, zekerheid: Math.min(u.zekerheid ?? 0.8, 0.8), uitleg: `Bon per e-mail gekoppeld: ${u.leverancier}. Controleer en bevestig.` } });
           await db.bon.update({ where: { id: bon.id }, data: { status: "gekoppeld" } });
         }
       }

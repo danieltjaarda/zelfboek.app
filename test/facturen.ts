@@ -20,8 +20,11 @@ if (!isVerlegd({ land: "US" })) throw new Error("buiten EU moet verlegd");
 const kor = berekenTotalen(regels, { land: "NL" }, { korDeelnemer: true });
 if (kor.btw !== 0) throw new Error("KOR fout");
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const o: any = { id: "o1", naam: "Studio Milronski", adres: "Dorpsstraat 1", postcode: "1234 AB", plaats: "Amsterdam", land: "NL", kvk: "12345678", btwId: "NL001234567B01", iban: "NL02ABNA0123456789", email: "info@studio.nl", huisstijlKleur: "#0f766e", korDeelnemer: false, factuurVoettekst: "Op al onze diensten zijn onze algemene voorwaarden van toepassing.", logoPad: null, telefoon: null, website: null };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const klant: any = { id: "k1", naam: "Klant BV", contactpersoon: "Jan Jansen", adres: "Kade 9", postcode: "5678 CD", plaats: "Rotterdam", land: "NL", btwNummer: "NL009876543B01", kvk: null, email: "jan@klant.nl" };
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const f: any = { id: "f1", ondernemingId: "o1", nummer: "2026-0001", soort: "factuur", datum: new Date("2026-10-08"), vervaldatum: new Date("2026-10-22"), regels: JSON.stringify(regels), subtotaal: nl.subtotaal, btw: nl.btw, totaal: nl.totaal, btwVerlegd: false, valuta: "EUR", referentie: "PO-77", opmerking: "Bedankt voor de opdracht.", betaalLinkUrl: "https://pay.example/x" };
 
 (async () => {
@@ -46,6 +49,7 @@ const f: any = { id: "f1", ondernemingId: "o1", nummer: "2026-0001", soort: "fac
   if (totaal !== 1264.5 || taxAmount !== 214.5 || inv["cac:InvoiceLine"].length !== 2) throw new Error("UBL-bedragen fout");
   if (!String(inv["cbc:CustomizationID"]).includes("nlcius")) throw new Error("NLCIUS ontbreekt");
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const credit: any = { ...f, soort: "credit", nummer: "2026-0002", regels: JSON.stringify(regels.map((r) => ({ ...r, aantal: -r.aantal }))) };
   const cx = p.parse(maakUbl(credit, klant, o));
   if (!cx.CreditNote || cx.CreditNote["cac:CreditNoteLine"].length !== 2) throw new Error("CreditNote fout");

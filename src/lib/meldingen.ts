@@ -119,7 +119,7 @@ export async function stuurWeekmail(ondernemingId: string): Promise<boolean> {
   ];
   const tekst = regels.map((r) => r.replace(/<[^>]+>/g, "")).join("\n");
   for (const aan of ontvangers) {
-    await verstuurMail({ aan, onderwerp: `Weekoverzicht ${o.naam}`, tekst, html: htmlMail(`Weekoverzicht ${o.naam}`, regels, { tekst: "Open ${MERK}", url: `${basis}/app` }) });
+    await verstuurMail({ aan, onderwerp: `Weekoverzicht ${o.naam}`, tekst, html: htmlMail(`Weekoverzicht ${o.naam}`, regels, { tekst: `Open ${MERK}`, url: `${basis}/app` }) });
   }
   await db.melding.updateMany({ where: { ondernemingId, gelezen: false, gemaild: false }, data: { gemaild: true } });
   return true;

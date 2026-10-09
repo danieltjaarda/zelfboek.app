@@ -3,9 +3,7 @@ import { MERK } from "@/lib/merk";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
-import { db, huidigeOnderneming } from "./db";
+import { db, schrijfOnderneming } from "./db";
 import { logUit, vereisGebruiker } from "./auth";
 import { htmlMail, verstuurMail } from "./mail";
 
@@ -14,7 +12,7 @@ export type Resultaat = { ok: true; melding: string } | { ok: false; fout: strin
 const v = (fd: FormData, k: string) => String(fd.get(k) ?? "").trim() || null;
 
 export async function bedrijfOpslaan(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const start = v(fd, "startdatum");
   await db.onderneming.update({
     where: { id: o.id },
@@ -29,7 +27,7 @@ export async function bedrijfOpslaan(fd: FormData): Promise<void> {
 }
 
 export async function facturenOpslaan(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const volgnr = Number(fd.get("factuurVolgnr") ?? o.factuurVolgnr);
   const kleur = v(fd, "huisstijlKleur") ?? "#1c1917";
   if (!/^#[0-9a-fA-F]{6}$/.test(kleur)) return { ok: false, fout: "Kleur moet een hex-code zijn, zoals #1c1917." };
@@ -43,12 +41,9 @@ export async function facturenOpslaan(fd: FormData): Promise<Resultaat> {
   if (logo instanceof File && logo.size > 0) {
     if (!["image/png", "image/jpeg", "image/webp", "image/svg+xml"].includes(logo.type)) return { ok: false, fout: "Logo moet PNG, JPG, WEBP of SVG zijn." };
     if (logo.size > 2 * 1024 * 1024) return { ok: false, fout: "Logo groter dan 2 MB." };
-    const map = path.join(process.cwd(), "uploads", o.id);
-    await mkdir(map, { recursive: true });
-    const ext = logo.type === "image/svg+xml" ? "svg" : logo.type.split("/")[1];
-    const pad = path.join(map, `logo.${ext}`);
-    await writeFile(pad, Buffer.from(await logo.arrayBuffer()));
-    data.logoPad = pad;
+    data.logo = new Uint8Array(await logo.arrayBuffer());
+    data.logoMime = logo.type;
+    data.logoPad = `db:logo.${logo.type === "image/svg+xml" ? "svg" : logo.type.split("/")[1]}`;
   }
   await db.onderneming.update({ where: { id: o.id }, data });
   revalidatePath("/app");
@@ -56,7 +51,7 @@ export async function facturenOpslaan(fd: FormData): Promise<Resultaat> {
 }
 
 export async function fiscaalOpslaan(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const tijdvak = v(fd, "btwTijdvak");
   await db.onderneming.update({
     where: { id: o.id },
@@ -69,7 +64,7 @@ export async function fiscaalOpslaan(fd: FormData): Promise<void> {
 }
 
 export async function lidToevoegen(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const s = await vereisGebruiker();
   const mijnRol = await db.lidmaatschap.findUnique({ where: { gebruikerId_ondernemingId: { gebruikerId: s.gebruikerId, ondernemingId: o.id } } });
   if (mijnRol?.rol !== "eigenaar") return { ok: false, fout: "Alleen de eigenaar kan leden toevoegen." };
@@ -86,7 +81,7 @@ export async function lidToevoegen(fd: FormData): Promise<Resultaat> {
 }
 
 export async function lidVerwijderen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const s = await vereisGebruiker();
   const id = String(fd.get("id"));
   const mijnRol = await db.lidmaatschap.findUnique({ where: { gebruikerId_ondernemingId: { gebruikerId: s.gebruikerId, ondernemingId: o.id } } });
@@ -107,7 +102,7 @@ export async function smtpTest(): Promise<Resultaat> {
 }
 
 export async function ondernemingVerwijderen(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const s = await vereisGebruiker();
   const mijnRol = await db.lidmaatschap.findUnique({ where: { gebruikerId_ondernemingId: { gebruikerId: s.gebruikerId, ondernemingId: o.id } } });
   if (mijnRol?.rol !== "eigenaar") return { ok: false, fout: "Alleen de eigenaar kan de onderneming verwijderen." };

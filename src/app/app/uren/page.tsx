@@ -4,7 +4,7 @@ import { db, huidigeOnderneming } from "@/lib/db";
 import { datumNl, euro, isoDatum } from "@/lib/btw";
 import { URENCRITERIUM } from "@/lib/fiscaal/constanten-2026";
 import { urenToevoegen, urenVerwijderen } from "@/lib/acties-fiscaal";
-import { Cijferband, Kaart, Kop, Leeg, Tegel, knop, veld } from "@/components/ui";
+import { Cijferband, Kaart, Kop, Leeg, Tegel } from "@/components/ui";
 
 export const instant = false;
 

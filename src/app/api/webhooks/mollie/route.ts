@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { leesKoppeling } from "@/lib/koppelingen";
 import { haalBetaling } from "@/lib/kanalen/mollie";
+import { rond } from "@/lib/btw";
 
 /**
  * Mollie-webhook voor betaallinks van facturen. Mollie stuurt alleen een id; wij halen de betaling op
@@ -23,7 +24,8 @@ export async function POST(req: Request) {
   if (!cfg?.apiKey) return NextResponse.json({ ontvangen: true, genegeerd: "geen Mollie-sleutel" });
 
   let betaling: Awaited<ReturnType<typeof haalBetaling>>;
-  try { betaling = await haalBetaling(cfg.apiKey, paymentId); } catch { return NextResponse.json({ ontvangen: true, genegeerd: "betaling niet opvraagbaar" }); }
+  // Tijdelijke storing bij Mollie: 503 teruggeven, dan probeert Mollie het later opnieuw.
+  try { betaling = await haalBetaling(cfg.apiKey, paymentId); } catch { return NextResponse.json({ fout: "betaling niet opvraagbaar" }, { status: 503 }); }
 
   const factuurId = factuur?.id ?? betaling.metadata?.factuurId;
   if (!factuurId) return NextResponse.json({ ontvangen: true });
@@ -32,7 +34,10 @@ export async function POST(req: Request) {
 
   if (betaling.status === "paid" && f.status !== "betaald") {
     const bedrag = parseFloat(betaling.amount.value);
-    await db.factuur.update({ where: { id: f.id }, data: { status: "betaald", betaaldOp: betaling.paidAt ? new Date(betaling.paidAt) : new Date(), betaaldBedrag: bedrag, betaalLinkId: paymentId } });
+    // Deelbetalingen die al handmatig geboekt waren blijven staan: optellen, niet overschrijven.
+    const totaalBetaald = rond(f.betaaldBedrag + bedrag);
+    const volledig = totaalBetaald >= f.totaal - 0.01;
+    await db.factuur.update({ where: { id: f.id }, data: { status: volledig ? "betaald" : f.status, betaaldOp: volledig ? (betaling.paidAt ? new Date(betaling.paidAt) : new Date()) : f.betaaldOp, betaaldBedrag: totaalBetaald, betaalLinkId: paymentId } });
     await db.melding.create({ data: { ondernemingId: oId, soort: "systeem", titel: `Factuur ${f.nummer} betaald via iDEAL`, tekst: `${bedrag.toFixed(2)} euro ontvangen via Mollie.`, link: `/app/facturen/${f.id}` } });
   } else if (["failed", "canceled", "expired"].includes(betaling.status) && f.betaalLinkId === paymentId && f.status !== "betaald") {
     await db.factuur.update({ where: { id: f.id }, data: { betaalLinkUrl: null, betaalLinkId: null } });
