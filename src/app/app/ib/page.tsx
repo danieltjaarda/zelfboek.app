@@ -33,7 +33,7 @@ export default async function Ib({ searchParams }: { searchParams: Promise<{ j?:
   const ib = berekenIb({
     fiscaleWinst: wv.fiscaleWinst,
     uren: urenTotaal,
-    urenCriteriumGehaald: o.urencriterium && urenTotaal === 0 ? true : undefined,
+    urenCriteriumGehaald: o.urencriterium ? true : undefined,
     starter: o.starter,
     investeringen: activa.reduce((s, a) => s + a.aanschafBedrag * (1 - a.priveDeel), 0),
     kilometerVergoeding: km._sum.vergoeding ?? 0,
@@ -49,7 +49,7 @@ export default async function Ib({ searchParams }: { searchParams: Promise<{ j?:
     voorbelasting: btwJaar["5b_voorbelasting"],
   });
   const verwachteWinst = Math.round((wv.fiscaleWinst / maanden) * 12);
-  const ibJaar = maanden < 12 ? berekenIb({ fiscaleWinst: verwachteWinst, uren: Math.round((urenTotaal / maanden) * 12), urenCriteriumGehaald: o.urencriterium && urenTotaal === 0 ? true : undefined, starter: o.starter, investeringen: 0, kilometerVergoeding: ((km._sum.vergoeding ?? 0) / maanden) * 12 }) : ib;
+  const ibJaar = maanden < 12 ? berekenIb({ fiscaleWinst: verwachteWinst, uren: Math.round((urenTotaal / maanden) * 12), urenCriteriumGehaald: o.urencriterium ? true : undefined, starter: o.starter, investeringen: 0, kilometerVergoeding: ((km._sum.vergoeding ?? 0) / maanden) * 12 }) : ib;
   const korGoedNieuws = kor.komtInAanmerking && kor.voordeel > 250 && !kor.deelnemer;
 
   return (

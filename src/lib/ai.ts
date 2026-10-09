@@ -10,7 +10,8 @@ export const MODEL_SNEL = "claude-haiku-5-5";
 
 let client: Anthropic | null = null;
 export function ai() {
-  if (!client) client = new Anthropic();
+  if (!process.env.ANTHROPIC_API_KEY) throw new Error("Geen geldige ANTHROPIC_API_KEY ingesteld.");
+  if (!client) client = new Anthropic({ maxRetries: 3 });
   return client;
 }
 

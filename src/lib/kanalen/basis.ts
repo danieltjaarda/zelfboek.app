@@ -39,7 +39,7 @@ export async function bewaarKanaalRegels(ondernemingId: string, bron: KoppelingS
           zakelijk: true, zekerheid: 1, bevestigd: true, uitleg: `Automatisch uit ${bron}`,
         }],
       })
-      .catch(() => ({ count: 0 }));
+      .catch((e: unknown) => { if ((e as { code?: string })?.code === "P2002") return { count: 0 }; throw e; });
     nieuw += res.count;
   }
   return nieuw;

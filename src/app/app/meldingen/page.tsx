@@ -2,7 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { db, huidigeOnderneming } from "@/lib/db";
 import { datumNl } from "@/lib/btw";
-import { Kaart, Kop, Leeg, Pil, knop, knopLicht, veld } from "@/components/ui";
+import { Kaart, Kop, Pil, knop, knopLicht, veld } from "@/components/ui";
 
 export const instant = false;
 

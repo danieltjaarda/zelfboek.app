@@ -124,7 +124,8 @@ export function berekenIb(i: IbInvoer): IbResultaat {
   const ondernemersaftrek = zelfst + starter;
   const naAftrek = winstUitOnderneming - ondernemersaftrek;
 
-  const mkb = naAftrek > 0 ? rond(naAftrek * C.MKB_WINSTVRIJSTELLING) : 0;
+  // Geldt ook bij verlies (het verlies wordt dan kleiner), zie Belastingdienst.
+  const mkb = rond(naAftrek * C.MKB_WINSTVRIJSTELLING);
   regels.push({ label: "MKB-winstvrijstelling", bedrag: -mkb, uitleg: `${(C.MKB_WINSTVRIJSTELLING * 100).toFixed(1).replace(".", ",")}% van de winst na ondernemersaftrek. Geen urencriterium nodig.` });
   const belastbareWinst = rond(naAftrek - mkb);
 

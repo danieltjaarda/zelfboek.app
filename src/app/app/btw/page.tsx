@@ -159,7 +159,7 @@ export default async function Btw({ searchParams }: { searchParams: Promise<{ j?
       )}
 
       <p className="mt-6 max-w-2xl text-[13px] leading-relaxed text-tekst-3">
-        Berekend uit je bankregels, gekoppelde bonnen en privédeel. Rubriek 4b (buitenlandse software met verlegde btw) staat ook in 5b en is netto nul. Rond af op hele euro's bij het overnemen.
+        Berekend uit je bankregels, gekoppelde bonnen en privédeel. Rubriek 4b (buitenlandse software met verlegde btw) staat ook in 5b en is netto nul. Rond af op hele euro&apos;s bij het overnemen.
         Je tijdvak is {tijdvak === "maand" ? "een maand" : tijdvak === "jaar" ? "een jaar" : "een kwartaal"}; wijzigen kan bij <Link href="/app/ib" className="underline">Inkomstenbelasting</Link>. {MERK} dient niet zelf in.
       </p>
     </>

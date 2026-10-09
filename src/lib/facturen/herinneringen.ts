@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { htmlMail, verstuurMail } from "@/lib/mail";
+import { esc, htmlMail, verstuurMail } from "@/lib/mail";
+import { WETTELIJKE_HANDELSRENTE } from "@/lib/fiscaal/constanten-2026";
 import { datumNl, euro, rond } from "@/lib/btw";
 import { factuurPdf } from "./pdf";
 
@@ -23,8 +24,8 @@ export function incassokosten(hoofdsom: number): number {
   return rond(Math.min(6775, Math.max(40, k)));
 }
 
-/** Wettelijke handelsrente (indicatief 2026: 10,5% per jaar) over het aantal dagen te laat. */
-export function wettelijkeRente(hoofdsom: number, dagenTeLaat: number, pctPerJaar = 10.5): number {
+/** Wettelijke handelsrente over het aantal dagen te laat. Percentage uit constanten-2026 (één bron). */
+export function wettelijkeRente(hoofdsom: number, dagenTeLaat: number, pctPerJaar = WETTELIJKE_HANDELSRENTE * 100): number {
   return rond((hoofdsom * (pctPerJaar / 100) * Math.max(0, dagenTeLaat)) / 365);
 }
 
@@ -51,29 +52,29 @@ export async function stuurHerinnering(factuurId: string, ondernemingId: string,
   if (trap === 1) {
     onderwerp = `Herinnering: factuur ${f.nummer} staat nog open`;
     regels = [
-      `Beste ${f.klant.contactpersoon ?? f.klant.naam},`,
+      `Beste ${esc(f.klant.contactpersoon ?? f.klant.naam)},`,
       `Misschien is het aan je aandacht ontsnapt: factuur ${f.nummer} van ${euro(open)} had een vervaldatum van ${datumNl(f.vervaldatum)}. Wil je het bedrag binnen 7 dagen overmaken op ${o.iban ?? "[IBAN]"} onder vermelding van ${f.nummer}?`,
       "Heb je al betaald, dan kun je dit bericht negeren.",
-      `Met vriendelijke groet,<br>${o.naam}`,
+      `Met vriendelijke groet,<br>${esc(o.naam)}`,
     ];
   } else if (trap === 2) {
     onderwerp = `Tweede herinnering: factuur ${f.nummer}`;
     regels = [
-      `Beste ${f.klant.contactpersoon ?? f.klant.naam},`,
+      `Beste ${esc(f.klant.contactpersoon ?? f.klant.naam)},`,
       `Ondanks onze eerdere herinnering staat factuur ${f.nummer} van ${euro(open)} nog open (vervaldatum ${datumNl(f.vervaldatum)}). Graag binnen 7 dagen betalen op ${o.iban ?? "[IBAN]"} onder vermelding van ${f.nummer}.`,
       "Blijft betaling uit, dan zijn we genoodzaakt wettelijke rente en incassokosten in rekening te brengen.",
-      `Met vriendelijke groet,<br>${o.naam}`,
+      `Met vriendelijke groet,<br>${esc(o.naam)}`,
     ];
   } else {
     const kosten = incassokosten(open);
     const rente = wettelijkeRente(open, dagen);
     onderwerp = `Aanmaning: factuur ${f.nummer}, laatste verzoek`;
     regels = [
-      `Beste ${f.klant.contactpersoon ?? f.klant.naam},`,
+      `Beste ${esc(f.klant.contactpersoon ?? f.klant.naam)},`,
       `Factuur ${f.nummer} van ${euro(open)} is ${dagen} dagen over de vervaldatum. Dit is een laatste verzoek tot betaling binnen 14 dagen na vandaag.`,
       `Blijft betaling uit, dan brengen we conform de Wet incassokosten ${euro(kosten)} incassokosten in rekening plus wettelijke handelsrente, tot nu ${euro(rente)}. Het totaal wordt dan ${euro(rond(open + kosten + rente))}.`,
       `Betalen kan op ${o.iban ?? "[IBAN]"} onder vermelding van ${f.nummer}.`,
-      `Met vriendelijke groet,<br>${o.naam}`,
+      `Met vriendelijke groet,<br>${esc(o.naam)}`,
     ];
   }
   await verstuurMail({
@@ -110,6 +111,9 @@ export async function verstuurHerinneringen(ondernemingId: string): Promise<{ ve
     const dagen = Math.floor((nu - f.vervaldatum.getTime()) / 864e5);
     const trap = trapVoor(dagen, f.herinneringen);
     if (!trap) continue;
+    // Eerst claimen: draait de cron twee keer tegelijk, dan mailt maar één van de twee.
+    const claim = await db.factuur.updateMany({ where: { id: f.id, laatsteHerinnering: f.laatsteHerinnering }, data: { laatsteHerinnering: new Date() } });
+    if (claim.count === 0) continue;
     try {
       await stuurHerinnering(f.id, ondernemingId, trap);
       verstuurd++;

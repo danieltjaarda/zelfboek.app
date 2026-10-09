@@ -32,6 +32,9 @@ export function sbrBtwAangifte(i: {
   const identifier = i.btwId.replace(/[^A-Z0-9]/gi, "").toUpperCase();
   const ctx = "c1";
 
+  // Eerst per rubriek afronden, dan optellen: zo sluiten 5a en 5c altijd op de rubrieken erboven.
+  const verschuldigdAfgerond = h(a["1a_btw"]) + h(a["1b_btw"]) + h(a["1c_btw"]) + h(a["2a_btw"]) + h(a["4a_btw"]) + h(a["4b_btw"]);
+  const voorbelastingAfgerond = h(a["5b_voorbelasting"]);
   const feiten: [string, number][] = [
     ["bd-i:ValueAddedTaxSuppliesServicesGeneralTariff", h(a["1a_btw"])],
     ["bd-i:TaxedTurnoverSuppliesServicesGeneralTariff", h(a["1a_omzet"])],
@@ -51,9 +54,9 @@ export function sbrBtwAangifte(i: {
     ["bd-i:ValueAddedTaxOnSuppliesFromCountriesOutsideTheEC", h(a["4a_btw"])],
     ["bd-i:TurnoverFromTaxedSuppliesFromCountriesWithinTheEC", h(a["4b_omzet"])],
     ["bd-i:ValueAddedTaxOnSuppliesFromCountriesWithinTheEC", h(a["4b_btw"])],
-    ["bd-i:ValueAddedTaxOwed", h(a["5a_verschuldigd"])],
-    ["bd-i:ValueAddedTaxOnInput", h(a["5b_voorbelasting"])],
-    ["bd-i:ValueAddedTaxOwedToBePaidBack", h(a["5c_te_betalen"])],
+    ["bd-i:ValueAddedTaxOwed", verschuldigdAfgerond],
+    ["bd-i:ValueAddedTaxOnInput", voorbelastingAfgerond],
+    ["bd-i:ValueAddedTaxOwedToBePaidBack", verschuldigdAfgerond - voorbelastingAfgerond],
   ];
 
   const out: string[] = [];

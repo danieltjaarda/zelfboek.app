@@ -27,6 +27,7 @@ model LoginCode {
   codeHash    String
   verlooptOp  DateTime
   gebruiktOp  DateTime?
+  pogingen    Int       @default(0)
   aangemaakt  DateTime  @default(now())
 }
 
@@ -69,6 +70,8 @@ model Onderneming {
   plaats          String?
   land            String   @default("NL")
   logoPad         String?
+  logo            Bytes?
+  logoMime        String?
   website         String?
   startdatum      DateTime?
   btwTijdvak      String   @default("kwartaal") // maand | kwartaal | jaar
@@ -77,8 +80,10 @@ model Onderneming {
   starter         Boolean  @default(false)  // startersaftrek
   factuurPrefix   String   @default("")
   factuurVolgnr   Int      @default(0)
+  factuurJaar     Int?     // jaar waar factuurVolgnr bij hoort
   offertePrefix   String   @default("OFF-")
   offerteVolgnr   Int      @default(0)
+  offerteJaar     Int?
   betaaltermijn   Int      @default(14)
   factuurVoettekst String?
   huisstijlKleur  String   @default("#1c1917")
@@ -174,6 +179,7 @@ model Bon {
   bestandsnaam   String
   mimeType       String
   bestandsPad    String
+  inhoud         Bytes?      // het bestand zelf (op Vercel is er geen schijf)
   bron           String      @default("upload") // upload | email | whatsapp
   leverancier    String?
   leverancierBtw String?

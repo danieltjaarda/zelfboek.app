@@ -36,6 +36,12 @@ export async function maakTerugkerendeFacturen(ondernemingId: string): Promise<{
         await db.terugkerendeFactuur.update({ where: { id: t.id }, data: { actief: false } });
         break;
       }
+      // Eerst de datum doorschuiven met een voorwaarde op de oude datum: draait de cron twee keer tegelijk,
+      // of herstart hij na een crash, dan wint er precies één en komt er geen dubbele factuur.
+      const datumVan = t.volgendeOp;
+      const claim = await db.terugkerendeFactuur.updateMany({ where: { id: t.id, volgendeOp: datumVan }, data: { volgendeOp: volgendeDatum(datumVan, t.interval) } });
+      if (claim.count === 0) break;
+      t.volgendeOp = volgendeDatum(datumVan, t.interval);
       const regels = parseRegels(t.regels);
       const tot = berekenTotalen(regels, t.klant, o);
       const nummer = await volgendFactuurnummer(ondernemingId);
@@ -45,8 +51,8 @@ export async function maakTerugkerendeFacturen(ondernemingId: string): Promise<{
           ondernemingId,
           klantId: t.klantId,
           nummer,
-          datum: t.volgendeOp,
-          vervaldatum: new Date(t.volgendeOp.getTime() + termijn * 864e5),
+          datum: datumVan,
+          vervaldatum: new Date(datumVan.getTime() + termijn * 864e5),
           regels: JSON.stringify(regels),
           subtotaal: tot.subtotaal,
           btw: tot.btw,
@@ -58,8 +64,6 @@ export async function maakTerugkerendeFacturen(ondernemingId: string): Promise<{
         },
       });
       aangemaakt++;
-      t.volgendeOp = volgendeDatum(t.volgendeOp, t.interval);
-      await db.terugkerendeFactuur.update({ where: { id: t.id }, data: { volgendeOp: t.volgendeOp } });
       if (t.autoVerzenden && t.klant.email) {
         try {
           await verzendFactuur(f.id, ondernemingId);

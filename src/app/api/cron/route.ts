@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { controleerDeadlines, stuurWeekmail } from "@/lib/meldingen";
 import { stuurVragenMail } from "@/lib/vragenmail";
+import { geheimKlopt } from "@/lib/crypto";
 
 export const maxDuration = 300;
 
@@ -20,7 +21,7 @@ export async function GET(req: Request) {
   const geheim = process.env.CRON_SECRET;
   const url = new URL(req.url);
   const gegeven = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? url.searchParams.get("secret") ?? "";
-  if (!geheim || gegeven !== geheim) return NextResponse.json({ fout: "Niet toegestaan" }, { status: 401 });
+  if (!geheimKlopt(gegeven, geheim)) return NextResponse.json({ fout: "Niet toegestaan" }, { status: 401 });
 
   const log = await db.cronLog.create({ data: { taak: "dagelijks" } });
   const maandag = new Date().getDay() === 1;

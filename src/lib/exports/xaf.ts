@@ -38,21 +38,24 @@ export async function xafExport(ondernemingId: string, jaar: number): Promise<st
   // Bankjournaal
   for (const t of transacties) {
     nr++;
-    const rek = rgsVan(t.categorie);
+    // Ontvangst op een factuur: omzet en btw zijn al in het verkoopjournaal geboekt, dus hier alleen debiteuren afboeken.
+    const opFactuur = Boolean(t.factuurId);
+    const rek = opFactuur ? DEB : rgsVan(t.categorie);
     gebruikteRek.add(rek);
     const incl = Math.abs(t.bedrag) * (1 - t.priveDeel);
-    const btw = (t.btwBedrag ?? btwUitInclusief(Math.abs(t.bedrag), t.btwCode)) * (1 - t.priveDeel);
+    const btw = opFactuur ? 0 : (t.btwBedrag ?? btwUitInclusief(Math.abs(t.bedrag), t.btwCode)) * (1 - t.priveDeel);
     const ex = incl - btw;
+    const bank = Math.abs(t.bedrag); // de bank muteert altijd het hele bedrag; het privédeel gaat naar privé
     const recID = t.id.slice(-10);
     const d = { recID, datum: t.datum, omschrijving: `${t.tegenpartij} ${t.omschrijving}`.trim().slice(0, 200), btwCode: t.btwCode ?? "", jrn: "BNK" };
     if (t.bedrag > 0) {
-      regels.push({ nr, ...d, accID: BANK, debet: incl, credit: 0, btwBedrag: 0 });
+      regels.push({ nr, ...d, accID: BANK, debet: bank, credit: 0, btwBedrag: 0 });
       regels.push({ nr, ...d, accID: rek, debet: 0, credit: ex, btwBedrag: btw });
       if (btw > 0) regels.push({ nr, ...d, accID: BTW_AF, debet: 0, credit: btw, btwBedrag: 0 });
     } else {
       regels.push({ nr, ...d, accID: rek, debet: ex, credit: 0, btwBedrag: btw });
       if (btw > 0) regels.push({ nr, ...d, accID: BTW_VOOR, debet: btw, credit: 0, btwBedrag: 0 });
-      regels.push({ nr, ...d, accID: BANK, debet: 0, credit: incl, btwBedrag: 0 });
+      regels.push({ nr, ...d, accID: BANK, debet: 0, credit: bank, btwBedrag: 0 });
     }
     if (t.priveDeel > 0) {
       const pr = Math.abs(t.bedrag) * t.priveDeel;

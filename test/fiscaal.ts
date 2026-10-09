@@ -64,7 +64,10 @@ const xml = sbrBtwAangifte({ aangifte: a, btwId: "NL123456789B01", naam: "Test B
 check("SBR geldig XML", XMLValidator.validate(xml) === true, XMLValidator.validate(xml));
 const p = new XMLParser({ ignoreAttributes: false }).parse(xml);
 check("SBR concept 1a", String(p["xbrli:xbrl"]["bd-i:ValueAddedTaxSuppliesServicesGeneralTariff"]["#text"]) === "210");
-check("SBR 5c", String(p["xbrli:xbrl"]["bd-i:ValueAddedTaxOwedToBePaidBack"]["#text"]) === String(Math.round(a["5c_te_betalen"])));
+// 5a en 5c moeten sluiten op de afgeronde rubrieken erboven (zo controleert de Belastingdienst het ook).
+const x = (k: string) => Number(p["xbrli:xbrl"][k]["#text"]);
+check("SBR 5a sluit", x("bd-i:ValueAddedTaxOwed") === x("bd-i:ValueAddedTaxSuppliesServicesGeneralTariff") + x("bd-i:ValueAddedTaxSuppliesServicesReducedTariff") + x("bd-i:ValueAddedTaxSuppliesServicesByWhichVATTaxationIsTransferred") + x("bd-i:ValueAddedTaxOnSuppliesFromCountriesOutsideTheEC") + x("bd-i:ValueAddedTaxOnSuppliesFromCountriesWithinTheEC"));
+check("SBR 5c sluit", x("bd-i:ValueAddedTaxOwedToBePaidBack") === x("bd-i:ValueAddedTaxOwed") - x("bd-i:ValueAddedTaxOnInput"));
 check("SBR periode", p["xbrli:xbrl"]["xbrli:context"]["xbrli:period"]["xbrli:startDate"] === "2026-07-01");
 
 // KOR

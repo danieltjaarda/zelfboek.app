@@ -2,30 +2,42 @@ import { db } from "@/lib/db";
 
 /**
  * Atomisch volgnummer. Reeks per jaar: "<prefix>2026-0001".
- * Bij een nieuw jaar begint de teller opnieuw (volgnr wordt gereset als het laatste nummer uit een ander jaar komt).
+ * Eén UPDATE doet het ophogen én de jaarreset, zodat twee gelijktijdige aanroepen (cron plus gebruiker,
+ * twee tabbladen) nooit hetzelfde nummer krijgen. Een nummer dat toch al bestaat (handmatig of geïmporteerd) wordt overgeslagen.
  */
-export async function volgendFactuurnummer(ondernemingId: string): Promise<string> {
+async function volgnummer(ondernemingId: string, soort: "factuur" | "offerte"): Promise<number> {
   const jaar = new Date().getFullYear();
-  return db.$transaction(async (tx) => {
-    const o = await tx.onderneming.findUniqueOrThrow({ where: { id: ondernemingId } });
-    const laatste = await tx.factuur.findFirst({ where: { ondernemingId }, orderBy: { aangemaakt: "desc" }, select: { nummer: true } });
-    const laatsteJaar = laatste ? Number(laatste.nummer.replace(o.factuurPrefix, "").slice(0, 4)) : jaar;
-    let volgnr = laatsteJaar === jaar ? o.factuurVolgnr : 0;
-    volgnr += 1;
-    await tx.onderneming.update({ where: { id: ondernemingId }, data: { factuurVolgnr: volgnr } });
-    return `${o.factuurPrefix}${jaar}-${String(volgnr).padStart(4, "0")}`;
-  });
+  const kolomNr = soort === "factuur" ? "factuurVolgnr" : "offerteVolgnr";
+  const kolomJaar = soort === "factuur" ? "factuurJaar" : "offerteJaar";
+  const rijen = await db.$queryRawUnsafe<{ nr: number }[]>(
+    `UPDATE "Onderneming" SET "${kolomNr}" = CASE WHEN "${kolomJaar}" IS NULL OR "${kolomJaar}" = $2 THEN "${kolomNr}" + 1 ELSE 1 END, "${kolomJaar}" = $2 WHERE id = $1 RETURNING "${kolomNr}" AS nr`,
+    ondernemingId,
+    jaar,
+  );
+  if (!rijen[0]) throw new Error("Onderneming niet gevonden.");
+  return rijen[0].nr;
+}
+
+export async function volgendFactuurnummer(ondernemingId: string): Promise<string> {
+  const o = await db.onderneming.findUniqueOrThrow({ where: { id: ondernemingId }, select: { factuurPrefix: true } });
+  const jaar = new Date().getFullYear();
+  for (let poging = 0; poging < 50; poging++) {
+    const nr = await volgnummer(ondernemingId, "factuur");
+    const nummer = `${o.factuurPrefix}${jaar}-${String(nr).padStart(4, "0")}`;
+    const bestaat = await db.factuur.findFirst({ where: { ondernemingId, nummer }, select: { id: true } });
+    if (!bestaat) return nummer;
+  }
+  throw new Error("Geen vrij factuurnummer gevonden.");
 }
 
 export async function volgendOffertenummer(ondernemingId: string): Promise<string> {
+  const o = await db.onderneming.findUniqueOrThrow({ where: { id: ondernemingId }, select: { offertePrefix: true } });
   const jaar = new Date().getFullYear();
-  return db.$transaction(async (tx) => {
-    const o = await tx.onderneming.findUniqueOrThrow({ where: { id: ondernemingId } });
-    const laatste = await tx.offerte.findFirst({ where: { ondernemingId }, orderBy: { datum: "desc" }, select: { nummer: true } });
-    const laatsteJaar = laatste ? Number(laatste.nummer.replace(o.offertePrefix, "").slice(0, 4)) : jaar;
-    let volgnr = laatsteJaar === jaar ? o.offerteVolgnr : 0;
-    volgnr += 1;
-    await tx.onderneming.update({ where: { id: ondernemingId }, data: { offerteVolgnr: volgnr } });
-    return `${o.offertePrefix}${jaar}-${String(volgnr).padStart(4, "0")}`;
-  });
+  for (let poging = 0; poging < 50; poging++) {
+    const nr = await volgnummer(ondernemingId, "offerte");
+    const nummer = `${o.offertePrefix}${jaar}-${String(nr).padStart(4, "0")}`;
+    const bestaat = await db.offerte.findFirst({ where: { ondernemingId, nummer }, select: { id: true } });
+    if (!bestaat) return nummer;
+  }
+  throw new Error("Geen vrij offertenummer gevonden.");
 }

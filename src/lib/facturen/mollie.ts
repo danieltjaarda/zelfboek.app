@@ -20,7 +20,7 @@ export async function maakBetaallink(factuurId: string, ondernemingId: string): 
       amount: { currency: f.valuta, value: openstaand.toFixed(2) },
       description: `Factuur ${f.nummer} ${f.onderneming.naam}`.slice(0, 255),
       redirectUrl: `${basis}/betaald?f=${encodeURIComponent(f.nummer)}`,
-      webhookUrl: `${basis}/api/webhooks/mollie`,
+      webhookUrl: `${basis}/api/webhooks/mollie?o=${encodeURIComponent(ondernemingId)}`,
       locale: "nl_NL",
       metadata: { factuurId: f.id, ondernemingId },
     }),

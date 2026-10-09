@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { db, huidigeOnderneming } from "./db";
+import { db, schrijfOnderneming } from "./db";
 import { btwUitInclusief, rond } from "./btw";
 import { parseBankbestand, importeerRegels, beoordeelOpenstaand as beoordeelOpen } from "./bank/importeer";
 import { startAutorisatie } from "./bank/enablebanking";
@@ -26,7 +26,7 @@ export async function importeerBestand(formData: FormData): Promise<Resultaat> {
   if (!(bestand instanceof File) || bestand.size === 0) return { ok: false, fout: "Geen bestand gekozen." };
   if (bestand.size > 25 * 1024 * 1024) return { ok: false, fout: "Bestand groter dan 25 MB." };
   try {
-    const o = await huidigeOnderneming();
+    const o = await schrijfOnderneming();
     const tekst = Buffer.from(await bestand.arrayBuffer()).toString("utf8");
     const p = parseBankbestand(tekst, bestand.name);
     if (p.regels.length === 0) return { ok: false, fout: "Geen bankregels herkend. Ondersteund: CSV van ING, Rabobank, ABN AMRO, bunq, Knab, SNS/ASN/RegioBank, Triodos, Revolut, N26, en MT940 of CAMT.053." };
@@ -39,7 +39,7 @@ export async function importeerBestand(formData: FormData): Promise<Resultaat> {
 
 export async function beoordeelOpenstaand(): Promise<Resultaat> {
   try {
-    const o = await huidigeOnderneming();
+    const o = await schrijfOnderneming();
     const r = await beoordeelOpen(o.id);
     ververs();
     if (r.fout) return { ok: false, fout: `${r.beoordeeld} geboekt, daarna fout: ${r.fout}` };
@@ -51,7 +51,7 @@ export async function beoordeelOpenstaandFormulier(): Promise<void> { await beoo
 
 /** Boeking wijzigen, ook privédeel (gemengd gebruik) of volledig splitsen in een zakelijk en een privé deel. */
 export async function wijzigTransactie(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const id = String(formData.get("id"));
   const t = await db.transactie.findFirst({ where: { id, ondernemingId: o.id } });
   if (!t) return;
@@ -82,19 +82,19 @@ export async function wijzigTransactie(formData: FormData): Promise<void> {
 }
 
 export async function bevestigAlles(): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.transactie.updateMany({ where: { ondernemingId: o.id, zakelijk: { not: null }, bevestigd: false }, data: { bevestigd: true } });
   ververs();
 }
 
 export async function verwijderTransactie(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.transactie.deleteMany({ where: { id: String(formData.get("id")), ondernemingId: o.id, bron: { in: ["csv", "mt940", "camt", "import"] } } });
   ververs();
 }
 
 export async function hernoemRekening(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.bankrekening.updateMany({ where: { id: String(formData.get("id")), ondernemingId: o.id }, data: { naam: String(formData.get("naam") ?? "").trim() || "Rekening" } });
   revalidatePath("/app/bank/rekeningen");
 }
@@ -106,7 +106,7 @@ const SOORTEN: KoppelingSoort[] = ["enablebanking", "mollie", "stripe", "shopify
 /** Sleutels van een koppeling opslaan (versleuteld). Velden komen uit het formulier, alle niet-lege waarden. */
 export async function koppelingOpslaan(formData: FormData): Promise<Resultaat> {
   try {
-    const o = await huidigeOnderneming();
+    const o = await schrijfOnderneming();
     const soort = String(formData.get("soort")) as KoppelingSoort;
     if (!SOORTEN.includes(soort)) return { ok: false, fout: "Onbekende koppeling." };
     const config: Record<string, string> = {};
@@ -123,7 +123,7 @@ export async function koppelingOpslaan(formData: FormData): Promise<Resultaat> {
 }
 
 export async function koppelingVerwijderen(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const soort = String(formData.get("soort")) as KoppelingSoort;
   await verwijderK(o.id, soort);
   if (soort === "enablebanking") await db.bankrekening.updateMany({ where: { ondernemingId: o.id, bron: "psd2" }, data: { psd2SessieId: null, psd2AccountId: null, psd2Verloopt: null } });
@@ -132,7 +132,7 @@ export async function koppelingVerwijderen(formData: FormData): Promise<void> {
 
 /** PSD2: doorsturen naar de bank voor toestemming. */
 export async function startPsd2(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bank = String(formData.get("bank") ?? "").trim();
   if (!bank) redirect("/app/koppelingen?fout=" + encodeURIComponent("Kies een bank."));
   const basis = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -147,7 +147,7 @@ export async function startPsd2(formData: FormData): Promise<void> {
 
 export async function syncNu(formData: FormData): Promise<Resultaat> {
   try {
-    const o = await huidigeOnderneming();
+    const o = await schrijfOnderneming();
     const soort = String(formData.get("soort") ?? "alles");
     const r = soort === "alles" ? await syncAlleBanken(o.id) : await syncEenBron(o.id, soort);
     ververs();
@@ -165,7 +165,7 @@ export async function syncNuFormulier(formData: FormData): Promise<void> {
 
 export async function importeerVanPakket(formData: FormData): Promise<Resultaat> {
   try {
-    const o = await huidigeOnderneming();
+    const o = await schrijfOnderneming();
     const pakket = String(formData.get("pakket"));
     const bestand = formData.get("bestand");
     const tekst = async () => (bestand instanceof File && bestand.size > 0 ? Buffer.from(await bestand.arrayBuffer()).toString("utf8") : "");

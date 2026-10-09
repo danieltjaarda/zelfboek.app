@@ -51,7 +51,7 @@ export async function importeerRegels(
           bron: opties.bron,
         }],
       })
-      .catch(() => ({ count: 0 }));
+      .catch((e: unknown) => { if ((e as { code?: string })?.code === "P2002") return { count: 0 }; throw e; });
     nieuw += res.count;
   }
   if (bankrekeningId) await db.bankrekening.update({ where: { id: bankrekeningId }, data: { laatsteSync: new Date() } });

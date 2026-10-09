@@ -1,4 +1,3 @@
-import { MERK } from "@/lib/merk";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
@@ -14,20 +13,18 @@ export async function POST(req: Request) {
   const ondernemingId = new URL(req.url).searchParams.get("o");
   if (!ondernemingId) return NextResponse.json({ fout: "Parameter o ontbreekt" }, { status: 400 });
   const cfg = await leesKoppeling<{ secretKey: string; webhookSecret?: string }>(ondernemingId, "stripe");
-  if (!cfg?.secretKey) return NextResponse.json({ fout: "Geen Stripe-koppeling" }, { status: 404 });
+  // Onbekende onderneming of geen koppeling: 200 zonder werk, zodat niemand id's kan raden.
+  if (!cfg?.secretKey) return NextResponse.json({ ontvangen: true });
   const geheim = cfg.webhookSecret || process.env.STRIPE_KANAAL_WEBHOOK_SECRET;
+  // Zonder webhook-geheim kan iedereen met een los POST'je een volledige Stripe-sync afdwingen: dan doen we niets.
+  if (!geheim) return NextResponse.json({ fout: "Stel het webhook-geheim in bij de Stripe-koppeling." }, { status: 503 });
   const body = await req.text();
 
   let event: Stripe.Event;
-  if (geheim) {
-    try {
-      event = new Stripe(cfg.secretKey).webhooks.constructEvent(body, req.headers.get("stripe-signature") ?? "", geheim);
-    } catch {
-      return NextResponse.json({ fout: "Ongeldige handtekening" }, { status: 400 });
-    }
-  } else {
-    // Zonder geheim vertrouwen we het event niet: we halen zelf op bij Stripe, de payload wordt alleen als trigger gebruikt.
-    try { event = JSON.parse(body) as Stripe.Event; } catch { return NextResponse.json({ fout: "Geen JSON" }, { status: 400 }); }
+  try {
+    event = new Stripe(cfg.secretKey).webhooks.constructEvent(body, req.headers.get("stripe-signature") ?? "", geheim);
+  } catch {
+    return NextResponse.json({ fout: "Ongeldige handtekening" }, { status: 400 });
   }
 
   if (event.type === "payout.paid" || event.type === "payout.updated") {

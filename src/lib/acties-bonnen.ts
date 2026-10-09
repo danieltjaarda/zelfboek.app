@@ -1,9 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { mkdir, readFile, unlink, writeFile } from "fs/promises";
-import path from "path";
-import { db, huidigeOnderneming } from "./db";
+import { readFile, unlink } from "fs/promises";
+import { db, schrijfOnderneming } from "./db";
 import { leesBon, type BonUitlezing } from "./ai";
 import { btwUitInclusief } from "./btw";
 
@@ -13,7 +12,7 @@ const TOEGESTAAN = ["application/pdf", "image/png", "image/jpeg", "image/webp", 
 
 function foutTekst(e: unknown) {
   const m = e instanceof Error ? e.message : String(e);
-  if (/api key|authentication/i.test(m)) return "Geen geldige ANTHROPIC_API_KEY in .env.";
+  if (/api key|apiKey|ANTHROPIC_API_KEY|authentication|401/i.test(m)) return "Geen geldige ANTHROPIC_API_KEY ingesteld.";
   return m;
 }
 
@@ -27,7 +26,7 @@ async function zoekBankregel(ondernemingId: string, u: { datum: Date | null; tot
   if (opBedrag) return opBedrag;
   const woord = (u.leverancier ?? "").split(/\s+/).find((w) => w.length >= 4);
   if (!woord) return null;
-  return db.transactie.findFirst({ where: { ...basis, bedrag: { lt: 0 }, tegenpartij: { contains: woord } } });
+  return db.transactie.findFirst({ where: { ...basis, bedrag: { lt: 0 }, tegenpartij: { contains: woord, mode: "insensitive" } } });
 }
 
 async function koppel(bonId: string, transactieId: string, u: { btwBedrag: number | null; btwCode: string | null; categorie: string | null; leverancier: string | null }) {
@@ -58,18 +57,15 @@ async function verwerkUitlezing(bonId: string, ondernemingId: string, u: BonUitl
 export async function uploadBonnen(formData: FormData): Promise<Resultaat> {
   const bestanden = formData.getAll("bestand").filter((b): b is File => b instanceof File && b.size > 0);
   if (bestanden.length === 0) return { ok: false, fout: "Geen bestand gekozen." };
-  const o = await huidigeOnderneming();
-  const map = path.join(process.cwd(), "uploads", o.id, "bonnen");
-  await mkdir(map, { recursive: true });
+  const o = await schrijfOnderneming();
   const meldingen: string[] = [];
   let fouten = 0;
   for (const bestand of bestanden) {
     if (bestand.size > 20 * 1024 * 1024) { meldingen.push(`${bestand.name}: groter dan 20 MB`); fouten++; continue; }
     if (!TOEGESTAAN.includes(bestand.type)) { meldingen.push(`${bestand.name}: alleen PDF, JPG, PNG, WEBP of GIF`); fouten++; continue; }
     const buffer = Buffer.from(await bestand.arrayBuffer());
-    const pad = path.join(map, `${Date.now()}-${bestand.name.replace(/[^\w.-]/g, "_")}`);
-    await writeFile(pad, buffer);
-    const bon = await db.bon.create({ data: { ondernemingId: o.id, bestandsnaam: bestand.name, mimeType: bestand.type, bestandsPad: pad } });
+    // Het bestand gaat de database in: op Vercel is er geen schijf die blijft bestaan.
+    const bon = await db.bon.create({ data: { ondernemingId: o.id, bestandsnaam: bestand.name, mimeType: bestand.type, bestandsPad: "", inhoud: new Uint8Array(buffer) } });
     try {
       const u = await leesBon(buffer, bestand.type);
       const gekoppeld = await verwerkUitlezing(bon.id, o.id, u);
@@ -86,11 +82,11 @@ export async function uploadBonnen(formData: FormData): Promise<Resultaat> {
 }
 
 export async function bonOpnieuwLezen(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bon = await db.bon.findFirst({ where: { id: String(formData.get("id")), ondernemingId: o.id } });
   if (!bon) return;
   try {
-    const buffer = await readFile(bon.bestandsPad);
+    const buffer = bon.inhoud ? Buffer.from(bon.inhoud) : await readFile(bon.bestandsPad);
     const u = await leesBon(buffer, bon.mimeType);
     await verwerkUitlezing(bon.id, o.id, u);
   } catch (e) {
@@ -100,7 +96,7 @@ export async function bonOpnieuwLezen(formData: FormData): Promise<void> {
 }
 
 export async function bonWijzigen(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bon = await db.bon.findFirst({ where: { id: String(formData.get("id")), ondernemingId: o.id }, include: { transactie: true } });
   if (!bon) return;
   const v = (k: string) => String(formData.get(k) ?? "").trim();
@@ -119,7 +115,7 @@ export async function bonWijzigen(formData: FormData): Promise<void> {
 }
 
 export async function bonKoppelen(formData: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bon = await db.bon.findFirst({ where: { id: String(formData.get("id")), ondernemingId: o.id } });
   const t = await db.transactie.findFirst({ where: { id: String(formData.get("transactieId")), ondernemingId: o.id } });
   if (!bon || !t) return { ok: false, fout: "Bon of bankregel niet gevonden." };
@@ -130,7 +126,7 @@ export async function bonKoppelen(formData: FormData): Promise<Resultaat> {
 }
 
 export async function bonOntkoppelen(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bon = await db.bon.findFirst({ where: { id: String(formData.get("id")), ondernemingId: o.id } });
   if (!bon) return;
   await db.transactie.updateMany({ where: { bonId: bon.id }, data: { bonId: null } });
@@ -139,11 +135,11 @@ export async function bonOntkoppelen(formData: FormData): Promise<void> {
 }
 
 export async function bonVerwijderen(formData: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bon = await db.bon.findFirst({ where: { id: String(formData.get("id")), ondernemingId: o.id } });
   if (!bon) return;
   await db.transactie.updateMany({ where: { bonId: bon.id }, data: { bonId: null } });
   await db.bon.delete({ where: { id: bon.id } });
-  await unlink(bon.bestandsPad).catch(() => undefined);
+  if (bon.bestandsPad) await unlink(bon.bestandsPad).catch(() => undefined);
   revalidatePath("/app");
 }

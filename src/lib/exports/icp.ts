@@ -1,5 +1,8 @@
 import { db } from "@/lib/db";
 import { btwUitInclusief, periodeBereik, rond } from "@/lib/btw";
+import { EU } from "@/lib/facturen/bereken";
+
+const EU_BUITEN_NL = [...EU].filter((l) => l !== "NL");
 
 export type IcpRegel = { land: string; btwNummer: string; naam: string; diensten: number; goederen: number };
 
@@ -12,7 +15,7 @@ export async function icpOpgaaf(ondernemingId: string, tijdvak: string, jaar: nu
   const { start, eind } = periodeBereik(tijdvak, jaar, periode);
   const [facturen, losse] = await Promise.all([
     db.factuur.findMany({
-      where: { ondernemingId, datum: { gte: start, lt: eind }, btwVerlegd: true, status: { not: "concept" }, klant: { land: { not: "NL" } } },
+      where: { ondernemingId, datum: { gte: start, lt: eind }, btwVerlegd: true, status: { not: "concept" }, klant: { land: { in: EU_BUITEN_NL } } },
       include: { klant: true },
     }),
     db.transactie.findMany({

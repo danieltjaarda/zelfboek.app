@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Kaart, Melding, knop, knopLicht, veld } from "./ui";
-import { berekenTotalen, type FactuurRegel } from "@/lib/facturen/bereken";
+import { berekenTotalen, parseBedrag, type FactuurRegel } from "@/lib/facturen/bereken";
 
 type Klant = { id: string; naam: string; email: string | null; land: string; btwNummer: string | null; isOndernemer: boolean; betaaltermijn: number | null };
 type Product = { id: string; naam: string; omschrijving: string | null; prijs: number; btw: number; eenheid: string };
@@ -40,6 +40,8 @@ export function FactuurFormulier({ soort, actie, klanten, producten, korDeelneme
   const [klantId, setKlantId] = useState(bestaand?.klantId ?? (klanten[0]?.id ?? "nieuw"));
   const [nieuweKlant, setNieuweKlant] = useState({ land: "NL", btwNummer: "" });
   const [regels, setRegels] = useState<FactuurRegel[]>(bestaand?.regels?.length ? bestaand.regels : [leeg()]);
+  // Wat de gebruiker letterlijk typt in het prijsveld (zodat "12," niet meteen naar "12" springt).
+  const [prijsTekst, setPrijsTekst] = useState<Record<number, string>>({});
   const [staat, verstuur, bezig] = useActionState(async (_v: Resultaat | null, fd: FormData) => actie(fd), null);
 
   useEffect(() => {
@@ -47,7 +49,10 @@ export function FactuurFormulier({ soort, actie, klanten, producten, korDeelneme
   }, [staat, router, terugNaar]);
 
   const klant = klanten.find((k) => k.id === klantId);
-  const fiscaal = klantId === "nieuw" ? { land: nieuweKlant.land, btwNummer: nieuweKlant.btwNummer, isOndernemer: true } : klant;
+  const fiscaal = useMemo(
+    () => (klantId === "nieuw" ? { land: nieuweKlant.land, btwNummer: nieuweKlant.btwNummer, isOndernemer: true } : klant),
+    [klantId, nieuweKlant.land, nieuweKlant.btwNummer, klant],
+  );
   const totalen = useMemo(() => berekenTotalen(regels, fiscaal, { korDeelnemer }), [regels, fiscaal, korDeelnemer]);
 
   const zet = (i: number, deel: Partial<FactuurRegel>) => setRegels((r) => r.map((x, j) => (j === i ? { ...x, ...deel } : x)));
@@ -113,11 +118,11 @@ export function FactuurFormulier({ soort, actie, klanten, producten, korDeelneme
                   {["stuk", "uur", "dag", "km", "maand"].map((e) => <option key={e}>{e}</option>)}
                 </select>
               </div>
-              <input name={`prijs${i}`} type="text" inputMode="decimal" value={String(r.prijs).replace(".", ",")} onChange={(e) => zet(i, { prijs: Number(e.target.value.replace(/\./g, "").replace(",", ".")) || 0 })} aria-label="Prijs" className={`${veld} col-span-3 sm:col-span-2`} />
+              <input name={`prijs${i}`} type="text" inputMode="decimal" value={prijsTekst[i] ?? String(r.prijs).replace(".", ",")} onChange={(e) => { setPrijsTekst((p) => ({ ...p, [i]: e.target.value })); zet(i, { prijs: parseBedrag(e.target.value) }); }} aria-label="Prijs" className={`${veld} col-span-3 sm:col-span-2`} />
               <select name={`btw${i}`} value={r.btw} onChange={(e) => zet(i, { btw: Number(e.target.value) })} disabled={totalen.btwVerlegd || korDeelnemer} aria-label="Btw-tarief" className={`${veld} col-span-2 sm:col-span-2`}>
                 <option value={21}>21%</option><option value={9}>9%</option><option value={0}>0%</option>
               </select>
-              <button type="button" onClick={() => setRegels((x) => x.filter((_, j) => j !== i))} className="col-span-1 text-tekst-3 hover:text-rood-tekst" aria-label="Regel verwijderen">×</button>
+              <button type="button" onClick={() => { setPrijsTekst({}); setRegels((x) => x.filter((_, j) => j !== i)); }} className="col-span-1 text-tekst-3 hover:text-rood-tekst" aria-label="Regel verwijderen">×</button>
             </div>
           ))}
           <button type="button" onClick={() => setRegels((r) => [...r, leeg()])} className="knop-licht knop-klein mt-3">Regel toevoegen</button>

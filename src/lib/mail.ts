@@ -18,6 +18,10 @@ export async function verstuurMail(opties: {
   antwoordAan?: string;
 }): Promise<{ verzonden: boolean; via: string }> {
   const van = process.env.MAIL_VAN || `${MERK} <noreply@localhost>`;
+  if (!process.env.SMTP_HOST && process.env.NODE_ENV === "production") {
+    // Nooit stilletjes "verzonden" melden: facturen en herinneringen zouden anders als verstuurd geboekt worden.
+    throw new Error("E-mail staat niet ingesteld (SMTP_HOST ontbreekt).");
+  }
   if (process.env.SMTP_HOST) {
     const transport = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
@@ -56,4 +60,9 @@ export function htmlMail(titel: string, regels: string[], knop?: { tekst: string
 ${regels.map((r) => `<p style="color:#44403c;line-height:1.5">${r}</p>`).join("")}
 ${knop ? `<p style="margin-top:24px"><a href="${knop.url}" style="background:#1c1917;color:#fff;padding:12px 20px;border-radius:999px;text-decoration:none">${knop.tekst}</a></p>` : ""}
 <p style="color:#a8a29e;font-size:12px;margin-top:32px">${MERK}</p></div></body></html>`;
+}
+
+/** HTML-escapen van tekst die uit bankregels, AI-antwoorden of klantgegevens komt. */
+export function esc(tekst: string | null | undefined): string {
+  return String(tekst ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c);
 }

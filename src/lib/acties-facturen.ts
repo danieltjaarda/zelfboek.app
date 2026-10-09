@@ -1,8 +1,9 @@
 "use server";
 
+import { willekeurigToken } from "./crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { db, huidigeOnderneming } from "@/lib/db";
+import { db, schrijfOnderneming } from "@/lib/db";
 import { rond } from "@/lib/btw";
 import { berekenTotalen, parseRegels, regelsUitFormData, type FactuurRegel } from "./facturen/bereken";
 import { volgendFactuurnummer, volgendOffertenummer } from "./facturen/nummering";
@@ -25,7 +26,7 @@ function ververs() {
 // ─────────── Klanten ───────────
 
 export async function klantOpslaan(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const naam = s(fd, "naam");
   if (!naam) return { ok: false, fout: "Naam is verplicht." };
   const id = sOfNull(fd, "id");
@@ -56,7 +57,7 @@ export async function klantOpslaan(fd: FormData): Promise<Resultaat> {
 }
 
 export async function klantVerwijderen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const id = s(fd, "id");
   const gebruikt = await db.factuur.count({ where: { klantId: id, ondernemingId: o.id } });
   if (gebruikt > 0) redirect(`/app/klanten/${id}?fout=${encodeURIComponent("Klant heeft facturen en kan niet worden verwijderd.")}`);
@@ -68,7 +69,7 @@ export async function klantVerwijderen(fd: FormData): Promise<void> {
 // ─────────── Producten ───────────
 
 export async function productOpslaan(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const id = sOfNull(fd, "id");
   const data = {
     naam: s(fd, "naam"),
@@ -84,7 +85,7 @@ export async function productOpslaan(fd: FormData): Promise<void> {
 }
 
 export async function productVerwijderen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await db.product.deleteMany({ where: { id: s(fd, "id"), ondernemingId: o.id } });
   ververs();
 }
@@ -116,7 +117,7 @@ async function klantUitFormulier(fd: FormData, ondernemingId: string) {
 
 /** Factuur opslaan als concept (of bijwerken zolang het een concept is). Met actie=verzenden direct mailen. */
 export async function factuurOpslaan(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const klant = await klantUitFormulier(fd, o.id);
     const regels = regelsUitFormData(fd);
@@ -159,7 +160,7 @@ export async function factuurOpslaan(fd: FormData): Promise<Resultaat> {
 }
 
 export async function factuurVerzenden(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     await verzendFactuur(s(fd, "id"), o.id, { aan: sOfNull(fd, "aan") ?? undefined, tekst: sOfNull(fd, "tekst") ?? undefined });
     ververs();
@@ -170,7 +171,7 @@ export async function factuurVerzenden(fd: FormData): Promise<Resultaat> {
 }
 
 export async function factuurBetaald(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const bedrag = s(fd, "bedrag") ? Number(s(fd, "bedrag").replace(",", ".")) : undefined;
   const datum = s(fd, "datum") ? new Date(s(fd, "datum")) : new Date();
   await markeerBetaald(s(fd, "id"), o.id, bedrag, datum);
@@ -178,14 +179,14 @@ export async function factuurBetaald(fd: FormData): Promise<void> {
 }
 
 export async function factuurAfletteren(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   await letterAf(s(fd, "transactieId"), s(fd, "id"), o.id);
   ververs();
   revalidatePath("/app/bank");
 }
 
 export async function factuurStatus(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const status = s(fd, "status");
   if (!["concept", "verzonden", "oninbaar", "betaald"].includes(status)) return;
   await db.factuur.updateMany({ where: { id: s(fd, "id"), ondernemingId: o.id }, data: { status } });
@@ -193,7 +194,7 @@ export async function factuurStatus(fd: FormData): Promise<void> {
 }
 
 export async function factuurVerwijderen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const f = await db.factuur.findFirst({ where: { id: s(fd, "id"), ondernemingId: o.id } });
   if (f?.status === "concept") await db.factuur.delete({ where: { id: f.id } });
   ververs();
@@ -201,7 +202,7 @@ export async function factuurVerwijderen(fd: FormData): Promise<void> {
 }
 
 export async function factuurHerinnering(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const trap = await stuurHerinnering(s(fd, "id"), o.id);
     ververs();
@@ -212,7 +213,7 @@ export async function factuurHerinnering(fd: FormData): Promise<Resultaat> {
 }
 
 export async function factuurBetaallink(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const url = await maakBetaallink(s(fd, "id"), o.id);
     ververs();
@@ -224,7 +225,7 @@ export async function factuurBetaallink(fd: FormData): Promise<Resultaat> {
 
 /** Creditfactuur: zelfde regels met negatieve aantallen, verwijst naar de oorspronkelijke factuur. */
 export async function factuurCrediteren(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const orig = await db.factuur.findFirstOrThrow({ where: { id: s(fd, "id"), ondernemingId: o.id }, include: { klant: true } });
     const regels: FactuurRegel[] = parseRegels(orig.regels).map((r) => ({ ...r, aantal: -Math.abs(r.aantal) }));
@@ -258,7 +259,7 @@ export async function factuurCrediteren(fd: FormData): Promise<Resultaat> {
 
 /** Niet-gefactureerde uren van een klant in één factuur zetten. */
 export async function urenNaarFactuur(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const klantId = s(fd, "klantId");
     const klant = await db.klant.findFirstOrThrow({ where: { id: klantId, ondernemingId: o.id } });
@@ -303,7 +304,7 @@ export async function urenNaarFactuur(fd: FormData): Promise<Resultaat> {
 // ─────────── Offertes ───────────
 
 export async function offerteOpslaan(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const klant = await klantUitFormulier(fd, o.id);
     const regels = regelsUitFormData(fd);
@@ -323,7 +324,7 @@ export async function offerteOpslaan(fd: FormData): Promise<Resultaat> {
       of = await db.offerte.update({ where: { id }, data: basis });
     } else {
       const nummer = await volgendOffertenummer(o.id);
-      of = await db.offerte.create({ data: { ...basis, ondernemingId: o.id, nummer } });
+      of = await db.offerte.create({ data: { ...basis, ondernemingId: o.id, nummer, acceptToken: willekeurigToken(24) } });
     }
     if (s(fd, "actie") === "verzenden") {
       await verzendOfferte(of.id, o.id);
@@ -338,7 +339,7 @@ export async function offerteOpslaan(fd: FormData): Promise<Resultaat> {
 }
 
 export async function offerteVerzenden(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     await verzendOfferte(s(fd, "id"), o.id);
     ververs();
@@ -349,7 +350,7 @@ export async function offerteVerzenden(fd: FormData): Promise<Resultaat> {
 }
 
 export async function offerteStatus(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const status = s(fd, "status");
   if (!["geaccepteerd", "afgewezen", "verlopen", "concept"].includes(status)) return;
   await db.offerte.updateMany({ where: { id: s(fd, "id"), ondernemingId: o.id }, data: { status, besluitOp: new Date() } });
@@ -370,7 +371,7 @@ export async function offerteBesluit(token: string, besluit: "geaccepteerd" | "a
 }
 
 export async function offerteNaarFactuur(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const of = await db.offerte.findFirstOrThrow({ where: { id: s(fd, "id"), ondernemingId: o.id }, include: { klant: true } });
     const regels = parseRegels(of.regels);
@@ -395,7 +396,7 @@ export async function offerteNaarFactuur(fd: FormData): Promise<Resultaat> {
 // ─────────── Terugkerend ───────────
 
 export async function terugkerendOpslaan(fd: FormData): Promise<Resultaat> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   try {
     const klant = await klantUitFormulier(fd, o.id);
     const regels = regelsUitFormData(fd);
@@ -422,14 +423,14 @@ export async function terugkerendOpslaan(fd: FormData): Promise<Resultaat> {
 }
 
 export async function terugkerendStoppen(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const actief = fd.get("actief") === "ja";
   await db.terugkerendeFactuur.updateMany({ where: { id: s(fd, "id"), ondernemingId: o.id }, data: { actief } });
   ververs();
 }
 
 export async function terugkerendOverslaan(fd: FormData): Promise<void> {
-  const o = await huidigeOnderneming();
+  const o = await schrijfOnderneming();
   const t = await db.terugkerendeFactuur.findFirst({ where: { id: s(fd, "id"), ondernemingId: o.id } });
   if (t) await db.terugkerendeFactuur.update({ where: { id: t.id }, data: { volgendeOp: volgendeDatum(t.volgendeOp, t.interval) } });
   ververs();

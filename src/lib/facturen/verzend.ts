@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { htmlMail, verstuurMail } from "@/lib/mail";
+import { esc, htmlMail, verstuurMail } from "@/lib/mail";
 import { datumNl, euro } from "@/lib/btw";
 import { factuurPdf, offertePdf } from "./pdf";
 import { factuurUbl } from "./ubl";
@@ -28,13 +28,13 @@ export async function verzendFactuur(factuurId: string, ondernemingId: string, o
   const credit = vers.soort === "credit";
   const onderwerp = credit ? `Creditfactuur ${vers.nummer} van ${o.naam}` : `Factuur ${vers.nummer} van ${o.naam}`;
   const regels = [
-    `Beste ${vers.klant.contactpersoon ?? vers.klant.naam},`,
+    `Beste ${esc(vers.klant.contactpersoon ?? vers.klant.naam)},`,
     opties?.tekst ??
       (credit
         ? `Hierbij ontvang je creditfactuur ${vers.nummer} van ${euro(Math.abs(vers.totaal))}.`
         : `Hierbij ontvang je factuur ${vers.nummer} van ${euro(vers.totaal)}. Graag betalen vóór ${datumNl(vers.vervaldatum)} op ${o.iban ?? "[IBAN]"} onder vermelding van ${vers.nummer}.`),
     "De factuur zit als PDF en als UBL e-factuur in de bijlage.",
-    `Met vriendelijke groet,<br>${o.naam}`,
+    `Met vriendelijke groet,<br>${esc(o.naam)}`,
   ];
   await verstuurMail({
     aan,
@@ -63,10 +63,10 @@ export async function verzendOfferte(offerteId: string, ondernemingId: string, o
   const o = of.onderneming;
   const onderwerp = `Offerte ${of.nummer} van ${o.naam}`;
   const regels = [
-    `Beste ${of.klant.contactpersoon ?? of.klant.naam},`,
+    `Beste ${esc(of.klant.contactpersoon ?? of.klant.naam)},`,
     opties?.tekst ?? `Hierbij ontvang je offerte ${of.nummer} van ${euro(of.totaal)} (inclusief btw). De offerte is geldig tot ${datumNl(of.geldigTot)}.`,
     "Je kunt de offerte online accepteren of afwijzen via de knop hieronder.",
-    `Met vriendelijke groet,<br>${o.naam}`,
+    `Met vriendelijke groet,<br>${esc(o.naam)}`,
   ];
   await verstuurMail({
     aan,
