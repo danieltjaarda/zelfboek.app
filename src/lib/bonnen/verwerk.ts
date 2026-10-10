@@ -1,0 +1,69 @@
+import { db } from "@/lib/db";
+import { leesBon, type BonUitlezing } from "@/lib/ai";
+
+/** Bestandstypes die we als bon accepteren. */
+export const BON_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/webp", "image/gif"];
+export const BON_MAX_BYTES = 20 * 1024 * 1024;
+
+/** Zoekt een bankregel bij een uitgelezen bon: zelfde bedrag ±0,01 binnen 14 dagen, anders op leveranciersnaam binnen 14 dagen. */
+export async function zoekBankregel(ondernemingId: string, u: { datum: Date | null; totaal: number | null; leverancier: string | null }) {
+  if (!u.datum || !u.totaal) return null;
+  const van = new Date(u.datum.getTime() - 14 * 864e5);
+  const tot = new Date(u.datum.getTime() + 14 * 864e5);
+  const basis = { ondernemingId, bonId: null, datum: { gte: van, lte: tot } };
+  const opBedrag = await db.transactie.findFirst({ where: { ...basis, bedrag: { gte: -u.totaal - 0.01, lte: -u.totaal + 0.01 } } });
+  if (opBedrag) return opBedrag;
+  const woord = (u.leverancier ?? "").split(/\s+/).find((w) => w.length >= 4);
+  if (!woord) return null;
+  return db.transactie.findFirst({ where: { ...basis, bedrag: { lt: 0 }, tegenpartij: { contains: woord, mode: "insensitive" } } });
+}
+
+export async function koppelBon(bonId: string, transactieId: string, u: { btwBedrag: number | null; btwCode: string | null; categorie: string | null; leverancier: string | null }) {
+  await db.transactie.update({
+    where: { id: transactieId },
+    data: { bonId, btwBedrag: u.btwBedrag ?? undefined, btwCode: u.btwCode ?? undefined, categorie: u.categorie ?? undefined, zakelijk: true, bevestigd: true, zekerheid: 1, uitleg: `Bon gekoppeld: ${u.leverancier ?? "onbekend"}` },
+  });
+  await db.bon.update({ where: { id: bonId }, data: { status: "gekoppeld" } });
+}
+
+/** Uitlezing opslaan op de bon en, als er precies één passende bankregel is, koppelen. Geeft terug of er gekoppeld is. */
+export async function verwerkUitlezing(bonId: string, ondernemingId: string, u: BonUitlezing) {
+  const datum = u.datum ? new Date(u.datum) : null;
+  const geldigeDatum = datum && !isNaN(datum.getTime()) ? datum : null;
+  await db.bon.update({
+    where: { id: bonId },
+    data: {
+      leverancier: u.leverancier, leverancierBtw: u.leverancierBtw || null, factuurnummer: u.factuurnummer || null,
+      datum: geldigeDatum, totaal: u.totaal, btwBedrag: u.btwBedrag, btwCode: u.btwCode, categorie: u.categorie,
+      valuta: u.valuta || "EUR", zekerheid: u.zekerheid, uitleg: u.uitleg, regelsJson: JSON.stringify(u.regels), status: "uitgelezen",
+    },
+  });
+  const match = await zoekBankregel(ondernemingId, { datum: geldigeDatum, totaal: u.totaal, leverancier: u.leverancier });
+  if (match) await koppelBon(bonId, match.id, u);
+  return !!match;
+}
+
+export function bonFoutTekst(e: unknown) {
+  const m = e instanceof Error ? e.message : String(e);
+  if (/api key|apiKey|ANTHROPIC_API_KEY|authentication|401/i.test(m)) return "Geen geldige ANTHROPIC_API_KEY ingesteld.";
+  return m;
+}
+
+/**
+ * Eén bon opslaan (in de database), uitlezen en koppelen. Gebruikt door de webapp én de mobiele API.
+ * Gooit niet: een leesfout komt terug als status "fout" op de bon.
+ */
+export async function bonUploaden(ondernemingId: string, bestand: { naam: string; type: string; data: Buffer }, bron = "upload") {
+  if (bestand.data.length > BON_MAX_BYTES) throw new Error(`${bestand.naam}: groter dan 20 MB`);
+  if (!BON_TYPES.includes(bestand.type)) throw new Error(`${bestand.naam}: alleen PDF, JPG, PNG, WEBP of GIF`);
+  const bon = await db.bon.create({ data: { ondernemingId, bestandsnaam: bestand.naam, mimeType: bestand.type, bestandsPad: "", inhoud: new Uint8Array(bestand.data), bron } });
+  try {
+    const u = await leesBon(bestand.data, bestand.type);
+    const gekoppeld = await verwerkUitlezing(bon.id, ondernemingId, u);
+    return { bonId: bon.id, ok: true as const, gekoppeld, uitlezing: u, melding: `${u.leverancier} ${u.totaal.toFixed(2)} ${u.valuta || "EUR"}: ${gekoppeld ? "gekoppeld aan bankregel" : "uitgelezen, nog geen bankregel"}` };
+  } catch (e) {
+    const fout = bonFoutTekst(e);
+    await db.bon.update({ where: { id: bon.id }, data: { status: "fout", uitleg: fout } });
+    return { bonId: bon.id, ok: false as const, gekoppeld: false, uitlezing: null, melding: `${bestand.naam}: ${fout}` };
+  }
+}
