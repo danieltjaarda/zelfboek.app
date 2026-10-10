@@ -2,6 +2,10 @@ import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 import { BTW_CODES, CATEGORIEEN, CATEGORIE_INFO } from "./categorieen";
+import { cliBeschikbaar, viaClaudeCli } from "./ai-cli";
+
+/** Geen API-sleutel maar wel de Claude Code-CLI op deze pc: dan via het abonnement (alleen lokaal). */
+const viaCli = () => !process.env.ANTHROPIC_API_KEY && cliBeschikbaar();
 
 export { BTW_CODES, CATEGORIEEN };
 
@@ -57,19 +61,22 @@ export async function beoordeelTransacties(
   const geschiedenis = context.eerdereKeuzes?.length
     ? `\nEerdere handmatige keuzes van deze ondernemer (volg die):\n${context.eerdereKeuzes.join("\n")}\n`
     : "";
+  const vraag =
+    `Onderneming: ${context.naam}${context.branche ? ` (${context.branche})` : ""}.${geschiedenis}
+` +
+    `Beoordeel deze regels. Positief bedrag is ontvangen, negatief is betaald.
+
+` +
+    JSON.stringify(regels);
+  if (viaCli()) {
+    const r = await viaClaudeCli({ schema: BeoordelingSchema, systeem: SYSTEEM, prompt: vraag, model: MODEL });
+    return r.beoordelingen;
+  }
   const response = await ai().messages.parse({
     model: MODEL,
     max_tokens: 16000,
     system: [{ type: "text", text: SYSTEEM, cache_control: { type: "ephemeral" } }],
-    messages: [
-      {
-        role: "user",
-        content:
-          `Onderneming: ${context.naam}${context.branche ? ` (${context.branche})` : ""}.${geschiedenis}\n` +
-          `Beoordeel deze regels. Positief bedrag is ontvangen, negatief is betaald.\n\n` +
-          JSON.stringify(regels),
-      },
-    ],
+    messages: [{ role: "user", content: vraag }],
     output_config: { format: zodOutputFormat(BeoordelingSchema) },
   });
   if (response.stop_reason === "refusal") throw new Error("AI weigerde de beoordeling");
@@ -95,6 +102,9 @@ export type BonUitlezing = z.infer<typeof BonSchema>;
 type AfbeeldingType = "image/png" | "image/jpeg" | "image/webp" | "image/gif";
 
 export async function leesBon(bestand: Buffer, mimeType: string): Promise<BonUitlezing> {
+  if (viaCli()) {
+    return viaClaudeCli({ schema: BonSchema, systeem: SYSTEEM, prompt: "Lees deze bon of inkoopfactuur volledig uit.", model: MODEL, bestand: { data: bestand, mimeType } });
+  }
   const data = bestand.toString("base64");
   const bron: Anthropic.ContentBlockParam =
     mimeType === "application/pdf"
